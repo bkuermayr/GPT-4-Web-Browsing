@@ -34,9 +34,10 @@ class GPTAnswer:
         # Create a formatted string of references
         formatted_reference = "\n"
         for i in range(self.TOP_K):
-            formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
+            if i < len(rearranged_index_list) and i < len(reference_url_list) and i < len(reference_content_list):
+                formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
         return formatted_reference
-
+    
     def _rearrange_index(self, original_index_list):
         # Rearrange indices to ensure they are unique and sequential
         index_dict = {}
