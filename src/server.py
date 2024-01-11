@@ -5,19 +5,27 @@ from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
+import logging
+
 
 app = Flask(__name__)
 
+
 @app.route('/api/query', methods=['POST'])
 def process_query():
+    logging.basicConfig(level=logging.INFO)
     data = request.get_json()
     query = data.get('search_query', '')
     prompt = data.get('prompt', '')
     output_format = data.get('output_format', "")
     profile = data.get('profile', "")
 
+    logging.info(f'Received query: {query}')
+    logging.info(f'Received prompt: {prompt}')
+
     # Fetch web content based on the query
-    web_contents_fetcher = WebContentFetcher(search_query=query)
+    print("Fetching web content: " + query + "\n")
+    web_contents_fetcher = WebContentFetcher(query=query)
     web_contents, serper_response = web_contents_fetcher.fetch()
 
     # Retrieve relevant documents using embeddings
@@ -35,11 +43,11 @@ def process_query():
     answer = ai_message_obj.content + '\n'
     end = time.time()
 
-    
+    logging.info(f'Generated answer in {end - start} seconds')
+
     # Optional Part: display the reference sources of the quoted sentences in LLM's answer
     locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
-
 
     response = {
         'answer': answer,
@@ -47,7 +55,6 @@ def process_query():
         'output_language': output_language,
         'reference_cards': reference_cards,
     }
-
 
     return jsonify(response)
 
