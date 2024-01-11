@@ -1,19 +1,20 @@
-import yaml
 import os
 from fetch_web_content import WebContentFetcher
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
+from dotenv import load_dotenv
+
+
 
 class EmbeddingRetriever:
     TOP_K = 10  # Number of top K documents to retrieve
 
     def __init__(self):
-        # Load configuration from config.yaml file
-        config_path = os.path.join(os.path.dirname(__file__), 'config', 'config.yaml')
-        with open(config_path, 'r') as file:
-            self.config = yaml.safe_load(file)
+        # Load configuration from .env file
+        load_dotenv()
+
 
         # Initialize the text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -32,7 +33,7 @@ class EmbeddingRetriever:
 
             # Select one of the models from OpenAIEmbeddings and text2vec-base-chinese to suit your needs:
             
-            OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=self.config["openai_api_key"])
+            OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY"))
             # SentenceTransformerEmbeddings(model_name="shibing624/text2vec-base-chinese")
         )
 

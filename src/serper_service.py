@@ -3,6 +3,9 @@ import re
 import json
 import yaml
 import os
+from dotenv import load_dotenv
+
+
 
 class SerperClient:
     def __init__(self):
@@ -11,10 +14,14 @@ class SerperClient:
         with open(config_path, 'r') as file:
             config = yaml.safe_load(file)
 
+        # Load configuration from .env file
+        load_dotenv()
+
+
         # Set up the URL and headers for the Serper API
         self.url = "https://google.serper.dev/search"
         self.headers = {
-            "X-API-KEY": config["serper_api_key"],  # API key from config file
+            "X-API-KEY": os.getenv("SERPER_API_KEY"),  # API key from config file
             "Content-Type": "application/json"
         }
 
