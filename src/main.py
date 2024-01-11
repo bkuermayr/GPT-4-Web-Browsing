@@ -6,9 +6,11 @@ import time
 import json
 
 if __name__ == "__main__":
-    query = "What happened to Silicon Valley Bank"
+    query = "TaylorMade - Hybrid - Qi10"
+    prompt = "Was sind die Produkthighlights vom  TaylorMade - Hybrid - Qi10? Schreibe daraufhin eine Produktbeschreibung"
     output_format = "" # User can specify output format
-    profile = "" # User can define the role for LLM
+    profile = "expert for product data and product description copywriter for a renowned ecommerce company. " # User can define the role for LLM
+    output_language = "de-de"
 
     # Fetch web content based on the query
     web_contents_fetcher = WebContentFetcher(query)
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, serper_response['language'], output_format, profile)
+    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content + '\n'
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")

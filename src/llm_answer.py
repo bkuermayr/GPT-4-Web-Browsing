@@ -3,7 +3,7 @@ import os
 import yaml
 from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
