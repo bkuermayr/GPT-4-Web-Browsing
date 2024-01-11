@@ -7,17 +7,22 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from dotenv import load_dotenv
+
+
 
 class GPTAnswer:
     TOP_K = 10  # Top K documents to retrieve
 
     def __init__(self):
         # Load configuration from a YAML file
+        # Load configuration from .env file
+        load_dotenv()
         config_path = os.path.join(os.path.dirname(__file__), 'config', 'config.yaml')
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-        self.model_name = self.config["model_name"]
-        self.api_key = self.config["openai_api_key"]
+        self.model_name = os.getenv("MODEL_NAME")
+        self.api_key = os.getenv("OPENAI_API_KEY")
 
     def _format_reference(self, relevant_docs_list, link_list):
         # Format the references from the retrieved documents for use in the prompt
