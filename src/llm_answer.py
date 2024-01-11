@@ -28,7 +28,7 @@ class GPTAnswer:
         # Format the references from the retrieved documents for use in the prompt
         reference_url_list = [(relevant_docs_list[i].metadata)['url'] for i in range(self.TOP_K)]
         reference_content_list = [relevant_docs_list[i].page_content for i in range(self.TOP_K)]
-        reference_index_list = [link_list.index(link)+1 for link in reference_url_list]
+        reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
         rearranged_index_list = self._rearrange_index(reference_index_list)
 
         # Create a formatted string of references
