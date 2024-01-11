@@ -40,17 +40,13 @@ def process_query():
     # Generate answer from ChatOpenAI
     output_language = data.get('output_language', serper_response['language'])
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
-    # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
-    full_answer = ai_message_obj.content + '\n'
-    answer, _, _ = full_answer.rpartition('\n\n')
-
+    answer = ai_message_obj.content + '\n'
     end = time.time()
 
     logging.info(f'Generated answer in {end - start} seconds')
 
     # Optional Part: display the reference sources of the quoted sentences in LLM's answer
-    locator = ReferenceLocator(full_answer, serper_response)
+    locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
 
     response = {
@@ -59,6 +55,7 @@ def process_query():
         'output_language': output_language,
         'reference_cards': reference_cards,
     }
+
     return jsonify(response)
 
 
