@@ -27,7 +27,7 @@ class WebContentFetcher:
                 content = scraper.scrape_url(url, 1)
 
             # If the content length is sufficient, add it to the shared list
-            if len(content) > 300:
+            if len(content) > 600:
                 with self.web_contents_lock:
                     self.web_contents.append({"url": url, "content": content})
 
