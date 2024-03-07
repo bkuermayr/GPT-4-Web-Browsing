@@ -1,0 +1,1 @@
+web: waitress-serve --port=8081 src.server:app
