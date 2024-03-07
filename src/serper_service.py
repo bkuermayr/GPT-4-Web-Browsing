@@ -25,13 +25,14 @@ class SerperClient:
             "Content-Type": "application/json"
         }
 
-    def serper(self, query: str):
+    def serper(self, query: str,country_code:str = "us",host_language:str = "de-de"):
         # Configure the query parameters for Serper API
-        serper_settings = {"q": query, "page": 2}
+        serper_settings = {"q": query, "page": 1, "gl": country_code,"hl": host_language}
 
         # Check if the query contains Chinese characters and adjust settings accordingly
         if self._contains_chinese(query):
             serper_settings.update({"gl": "cn", "hl": "zh-cn",})
+        
 
         payload = json.dumps(serper_settings)
 
