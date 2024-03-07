@@ -61,7 +61,9 @@ class WebContentFetcher:
         # Main method to fetch web content based on the query
         serper_response = self._serper_launcher()
         if serper_response:
+            print(f"Fetching web content for query: {self.query}")
             url_list = serper_response["links"]
+            print(f"Found {len(url_list)} URLs from the search results")
             self._crawl_threads_launcher(url_list)
             # Reorder the fetched content to match the order of URLs
             ordered_contents = [
