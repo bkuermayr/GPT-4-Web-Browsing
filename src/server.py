@@ -22,6 +22,7 @@ def process_query():
     search_location = data.get('search_location', "")
     search_language = data.get('search_language', "")
     output_language = data.get('output_language', "")
+    use_web_search = data.get('use_web_search', True)
 
     logging.info(f'Received query: {query}')
     logging.info(f'Received prompt: {prompt}')
@@ -29,16 +30,20 @@ def process_query():
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            # Fetch web content based on the query
-            print("Fetching web content: " + query + "\n")
-            web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language)
-            web_contents, serper_response = web_contents_fetcher.fetch()
+            if(use_web_search):
+                # Fetch web content based on the query
+                print("Fetching web content: " + query + "\n")
+                web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language, output_language=output_language)
+                web_contents, serper_response = web_contents_fetcher.fetch()
 
-            # Retrieve relevant documents using embeddings
-            retriever = EmbeddingRetriever()
-            relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
-            content_processor = GPTAnswer()
-            formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
+                # Retrieve relevant documents using embeddings
+                retriever = EmbeddingRetriever()
+                relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+                content_processor = GPTAnswer()
+                formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
+            else:
+                formatted_relevant_docs = None
+                serper_response = None
 
             # Measure the time taken to get an answer from the GPT model
             start = time.time()
