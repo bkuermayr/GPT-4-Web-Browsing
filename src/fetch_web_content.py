@@ -4,13 +4,15 @@ from web_crawler import WebScraper
 from serper_service import SerperClient
 
 class WebContentFetcher:
-    def __init__(self, query):
+    def __init__(self, query, search_location="us", search_language="en", output_language="en"):
         # Initialize the fetcher with a search query
         self.query = query
         self.web_contents = []  # Stores the fetched web contents
         self.error_urls = []  # Stores URLs that resulted in an error during fetching
         self.web_contents_lock = threading.Lock()  # Lock for thread-safe operations on web_contents
         self.error_urls_lock = threading.Lock()  # Lock for thread-safe operations on error_urls
+        self.search_location = search_location
+        self.search_language = search_language
 
     def _web_crawler_thread(self, thread_id: int, urls: list):
         # Thread function to crawl each URL
@@ -43,7 +45,7 @@ class WebContentFetcher:
     def _serper_launcher(self):
         # Function to launch the Serper client and get search results
         serper_client = SerperClient()
-        serper_results = serper_client.serper(self.query)
+        serper_results = serper_client.serper(self.query, self.search_location, self.search_language)
         return serper_client.extract_components(serper_results)
 
     def _crawl_threads_launcher(self, url_list):

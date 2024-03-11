@@ -19,6 +19,9 @@ def process_query():
     prompt = data.get('prompt', '')
     output_format = data.get('output_format', "")
     profile = data.get('profile', "")
+    search_location = data.get('search_location', "")
+    search_language = data.get('search_language', "")
+    output_language = data.get('output_language', "")
 
     logging.info(f'Received query: {query}')
     logging.info(f'Received prompt: {prompt}')
@@ -28,7 +31,7 @@ def process_query():
         try:
             # Fetch web content based on the query
             print("Fetching web content: " + query + "\n")
-            web_contents_fetcher = WebContentFetcher(query=query)
+            web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language)
             web_contents, serper_response = web_contents_fetcher.fetch()
 
             # Retrieve relevant documents using embeddings
