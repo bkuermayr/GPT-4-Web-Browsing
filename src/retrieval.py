@@ -23,6 +23,11 @@ class EmbeddingRetriever:
         )
 
     def retrieve_embeddings(self, contents_list: list, link_list: list, query: str):
+                # Check that contents_list and link_list have the same length
+        if len(contents_list) != len(link_list):
+            raise ValueError("contents_list and link_list must have the same length")
+
+
         # Retrieve embeddings for a given list of contents and a query
         metadatas = [{'url': link} for link in link_list]
         texts = self.text_splitter.create_documents(contents_list, metadatas=metadatas)
