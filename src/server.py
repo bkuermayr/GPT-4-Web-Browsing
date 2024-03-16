@@ -28,6 +28,7 @@ def process_query():
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
     logging.info(f'Received prompt: {prompt}')
+    content_processor = GPTAnswer()
 
     if(use_web_search):
         # Fetch web content based on the query
@@ -38,7 +39,6 @@ def process_query():
         # Retrieve relevant documents using embeddings
         retriever = EmbeddingRetriever()
         relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
-        content_processor = GPTAnswer()
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
     else:
         formatted_relevant_docs = None
@@ -48,7 +48,7 @@ def process_query():
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    output_language = data.get('output_language', serper_response['language'])
+    output_language = data.get('output_language', 'en')
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content + '\n'
     end = time.time()
