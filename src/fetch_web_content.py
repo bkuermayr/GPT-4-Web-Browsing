@@ -1,11 +1,15 @@
 import threading
 import time
+
 from serper_service import SerperClient
 from web_crawler import WebScraper
+from dotenv import load_dotenv
+
+
 
 
 class WebContentFetcher:
-    MAX_RETRIES = 3  # Maximum number of retries for each URL
+    MAX_RETRIES = 1  # Maximum number of retries for each URL
     ALLOWED_FAILURES = 5  # Allow up to 5 URLs to fail
 
     def __init__(self, query, search_location="Vienna, Austria", search_language="German",output_language="German"):
@@ -83,7 +87,7 @@ class WebContentFetcher:
             self._crawl_threads_launcher(url_list)
             ordered_contents = [next((item for item in self.web_contents if item['url'] == url), {'content': ''})['content'] for url in url_list]
             return ordered_contents, serper_response
-        return [], None
+        return [], None        
 
 if __name__ == "__main__":
     fetcher = WebContentFetcher("What happened to Silicon Valley Bank")

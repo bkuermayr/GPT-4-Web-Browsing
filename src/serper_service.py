@@ -27,7 +27,11 @@ class SerperClient:
 
     def serper(self, query: str,search_location:str = "us",host_language:str = "de-de"):
         # Configure the query parameters for Serper API
-        serper_settings = {"q": query, "gl": search_location,"hl": host_language}
+        # Exclude youtube.com, reddit.com, and eet.com from the search results
+        query = query + " -site:youtube.com -site:reddit.com -site:eet.com"
+        
+        # Configure the query parameters for Serper API
+        serper_settings = {"q": query, "gl": search_location, "hl": host_language}
 
         # Check if the query contains Chinese characters and adjust settings accordingly
         if self._contains_chinese(query):
