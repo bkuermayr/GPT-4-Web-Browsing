@@ -1,6 +1,13 @@
+from dotenv import load_dotenv
 import requests
 import re
 from bs4 import BeautifulSoup
+import os
+
+import requests
+
+# Load .env file
+load_dotenv()
 
 class WebScraper:
     def __init__(self, user_agent='macOS'):
@@ -37,14 +44,18 @@ class WebScraper:
 
         try:
             # Attempt to get the webpage content with specified headers and timeout
-            response = requests.get(url, headers=self.headers, timeout=8)
-            response.encoding = "utf-8"
+            payload = { 'api_key': '8b41c3983c0430282f21fe4e12e99aca', 'url': url }
+            response = requests.get('https://api.scraperapi.com/', params=payload)
+
+            if response.status_code == 200:
+                return response
+            else:
+                raise Exception(f'Request failed with status {response.status_code}')  
+
         except requests.exceptions.Timeout:
             # Add timeout exception handling here
             return response
         
-        return response
-
     def convert_html_to_soup(self, html):
         # Convert the HTML string to a BeautifulSoup object for parsing
         html_string = html.text
@@ -67,6 +78,7 @@ class WebScraper:
         soup = self.convert_html_to_soup(webpage_html)
         main_content = self.extract_main_content(soup, rule)
         return main_content
+    
 
 # Example usage
 if __name__ == "__main__":
