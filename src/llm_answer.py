@@ -25,27 +25,22 @@ class GPTAnswer:
         self.api_key = os.getenv("OPENAI_API_KEY")
 
     def _format_reference(self, relevant_docs_list, link_list):
-        num_docs = min(len(relevant_docs_list), self.TOP_K)
+        try:
+            num_docs = min(len(relevant_docs_list), self.TOP_K)
+            reference_url_list = [(relevant_docs_list[i].metadata)['url'] for i in range(num_docs)]
+            reference_content_list = [relevant_docs_list[i].page_content for i in range(num_docs)]
+            reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
+            rearranged_index_list = self._rearrange_index(reference_index_list)
 
-        if len(relevant_docs_list) < num_docs:
-            raise ValueError("relevant_docs_list has fewer elements than expected")
+            formatted_reference = "\n"
+            for i in range(num_docs):
+                formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
+            return formatted_reference
 
-        reference_url_list = [(relevant_docs_list[i].metadata)['url'] for i in range(num_docs)]
-        reference_content_list = [relevant_docs_list[i].page_content for i in range(num_docs)]
+        except Exception as e:
+            print("Exception while formatting reference: ", e)
+            return ""
 
-        if not all(link in link_list for link in reference_url_list):
-            raise ValueError("link_list does not contain all URLs in reference_url_list")
-
-        reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]
-        rearranged_index_list = self._rearrange_index(reference_index_list)
-
-        if len(rearranged_index_list) < num_docs:
-            raise ValueError("rearranged_index_list has fewer elements than expected")
-
-        formatted_reference = "\n"
-        for i in range(num_docs):
-            formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
-        return formatted_reference
 
     def _rearrange_index(self, original_index_list):
         # Rearrange indices to ensure they are unique and sequential

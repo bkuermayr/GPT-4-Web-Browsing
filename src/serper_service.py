@@ -28,8 +28,8 @@ class SerperClient:
     def serper(self, query: str,search_location:str = "us",host_language:str = "de-de"):
         # Configure the query parameters for Serper API
         # Exclude youtube.com, reddit.com, and eet.com from the search results
-        query = query + " -site:youtube.com -site:reddit.com -site:eet.com"
-        
+        query = query + " -site:youtube.com -site:reddit.com -site:eet.com -site:ebay.com"
+
         # Configure the query parameters for Serper API
         serper_settings = {"q": query, "gl": search_location, "hl": host_language}
 
