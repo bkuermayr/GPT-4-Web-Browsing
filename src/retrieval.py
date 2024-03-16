@@ -3,10 +3,7 @@ from fetch_web_content import WebContentFetcher
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai.embeddings import OpenAIEmbeddings
-from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from dotenv import load_dotenv
-
-
 
 class EmbeddingRetriever:
     TOP_K = 10  # Number of top K documents to retrieve
@@ -15,36 +12,31 @@ class EmbeddingRetriever:
         # Load configuration from .env file
         load_dotenv()
 
-
         # Initialize the text splitter
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=0
-        )
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
     def retrieve_embeddings(self, contents_list: list, link_list: list, query: str):
-                # Check that contents_list and link_list have the same length
         if len(contents_list) != len(link_list):
             raise ValueError("contents_list and link_list must have the same length")
 
+        # Pre-process contents to ensure they are suitable for splitting and embedding
+        processed_contents = [content if content and len(content) >= 50 else "No content available." for content in contents_list]
 
-        # Retrieve embeddings for a given list of contents and a query
+        # Create metadata and prepare documents for Chroma
         metadatas = [{'url': link} for link in link_list]
-        texts = self.text_splitter.create_documents(contents_list, metadatas=metadatas)
+        texts = self.text_splitter.create_documents(processed_contents, metadatas=metadatas)
 
-        # Create a Chroma database from the documents using specific embeddings
-        db = Chroma.from_documents(
-            texts,
-
-            # Select one of the models from OpenAIEmbeddings and text2vec-base-chinese to suit your needs:
-            
-            OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY"))
-            # SentenceTransformerEmbeddings(model_name="shibing624/text2vec-base-chinese")
-        )
-
-        # Create a retriever from the database to find relevant documents
-        retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
-        return retriever.get_relevant_documents(query) # Retrieve and return the relevant documents
+        # Safely initialize and populate Chroma database
+        try:
+            db = Chroma.from_documents(
+                texts,
+                OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY"))
+            )
+            retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
+            return retriever.get_relevant_documents(query)
+        except Exception as e:
+            print(f"An error occurred while creating or querying the Chroma database: {e}")
+            return []
 
 # Example usage
 if __name__ == "__main__":
