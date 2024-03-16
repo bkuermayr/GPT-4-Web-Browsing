@@ -80,7 +80,11 @@ if __name__ == "__main__":
 
     # Retrieve relevant documents using embeddings
     retriever = EmbeddingRetriever()
-    relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+    print("Generating embeddings: " + serper_response['links'] + "\n" + web_contents)
+    try:
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+    except Exception as e:
+        print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
     print(formatted_relevant_docs)
 

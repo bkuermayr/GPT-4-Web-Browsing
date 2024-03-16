@@ -24,7 +24,7 @@ def process_query():
     output_language = data.get('output_language', "")
     use_web_search = data.get('use_web_search', True)
 
-    logging.info(f'Received query: {query}')
+    logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
     logging.info(f'Received prompt: {prompt}')
 
     max_retries = 3
