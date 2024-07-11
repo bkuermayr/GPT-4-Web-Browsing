@@ -30,7 +30,7 @@ def make_celery(app):
     return celery
 
 celery = make_celery(app)
-cache = redis.StrictRedis(host='localhost', port=6379, db=1)
+cache = redis.from_url(redis_url)
 
 @celery.task(name='app.process_query_task')
 def process_query_task(data):
