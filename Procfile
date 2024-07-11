@@ -1,2 +1,2 @@
 web: gunicorn -w 4 src.app:app
-worker: celery -A src.app.celery worker --loglevel=info -P threads
+worker: celery -A src.app.celery worker --loglevel=info --pool solo
