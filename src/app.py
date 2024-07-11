@@ -14,7 +14,8 @@ import os
 
 app = Flask(__name__)
 
-redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+print(f'Using Redis URL: {redis_url}')
 
 app.config['broker_url'] = redis_url
 app.config['result_backend'] = redis_url
