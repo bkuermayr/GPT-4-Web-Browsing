@@ -6,15 +6,30 @@ from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 import logging
-
+from celery import Celery
+from celery.result import AsyncResult
+import redis
 
 app = Flask(__name__)
 
+# New Celery configuration format
+app.config['broker_url'] = 'redis://localhost:6379/0'
+app.config['result_backend'] = 'redis://localhost:6379/0'
 
-@app.route('/api/query', methods=['POST'])
-def process_query():
-    logging.basicConfig(level=logging.INFO)
-    data = request.get_json()
+def make_celery(app):
+    celery = Celery(
+        app.import_name,
+        broker=app.config['broker_url'],
+        backend=app.config['result_backend']
+    )
+    celery.conf.update(app.config)
+    return celery
+
+celery = make_celery(app)
+cache = redis.StrictRedis(host='localhost', port=6379, db=1)
+
+@celery.task(name='app.process_query_task')
+def process_query_task(data):
     query = data.get('search_query', '')
     prompt = data.get('prompt', '')
     output_format = data.get('output_format', "")
@@ -30,13 +45,9 @@ def process_query():
     logging.info(f'Received prompt: {prompt}')
     content_processor = GPTAnswer()
 
-    if(use_web_search):
-        # Fetch web content based on the query
-        print("Fetching web content: " + query + "\n")
+    if use_web_search:
         web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language, output_language=output_language)
         web_contents, serper_response = web_contents_fetcher.fetch()
-
-        # Retrieve relevant documents using embeddings
         retriever = EmbeddingRetriever()
         relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
@@ -44,10 +55,7 @@ def process_query():
         formatted_relevant_docs = None
         serper_response = None
 
-    # Measure the time taken to get an answer from the GPT model
     start = time.time()
-
-    # Generate answer from ChatOpenAI
     output_language = data.get('output_language', 'en')
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content + '\n'
@@ -55,7 +63,6 @@ def process_query():
 
     logging.info(f'Generated answer in {end - start} seconds')
 
-    # Optional Part: display the reference sources of the quoted sentences in LLM's answer
     locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
 
@@ -66,6 +73,39 @@ def process_query():
         'reference_cards': reference_cards,
     }
 
+    return response
+
+@app.route('/api/query', methods=['POST'])
+def process_query():
+    data = request.get_json()
+    query = data.get('search_query', '')
+
+    # Check if response is cached
+    cached_response = cache.get(query)
+    if cached_response:
+        return jsonify(json.loads(cached_response))
+
+    task = process_query_task.apply_async(args=[data])
+    return jsonify({"task_id": task.id})
+
+@app.route('/api/status/<task_id>', methods=['GET'])
+def task_status(task_id):
+    task_result = AsyncResult(task_id, app=celery)
+    if task_result.state == 'PENDING':
+        response = {
+            'state': task_result.state,
+            'status': 'Pending...'
+        }
+    elif task_result.state != 'FAILURE':
+        response = {
+            'state': task_result.state,
+            'result': task_result.result,
+        }
+    else:
+        response = {
+            'state': task_result.state,
+            'status': str(task_result.info),
+        }
     return jsonify(response)
 
 @app.route('/')
@@ -73,4 +113,4 @@ def hello():
     return 'Hello, World!'
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
