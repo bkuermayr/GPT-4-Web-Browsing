@@ -9,12 +9,15 @@ import logging
 from celery import Celery
 from celery.result import AsyncResult
 import redis
+import os
+
 
 app = Flask(__name__)
 
-# New Celery configuration format
-app.config['broker_url'] = 'redis://localhost:6379/0'
-app.config['result_backend'] = 'redis://localhost:6379/0'
+redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+
+app.config['broker_url'] = redis_url
+app.config['result_backend'] = redis_url
 
 def make_celery(app):
     celery = Celery(
