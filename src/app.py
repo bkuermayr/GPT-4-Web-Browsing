@@ -19,7 +19,7 @@ redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 print(f'Using Redis URL: {redis_url}')
 
 # Initialize Redis connection pool
-redis_pool = redis.ConnectionPool.from_url(redis_url, max_connections=10)
+redis_pool = redis.ConnectionPool.from_url(redis_url)
 
 def get_redis():
     if 'redis' not in g:
