@@ -41,7 +41,7 @@ def make_celery(app):
         'max_connections': 10,
     }
     celery.conf.redis_backend_use_ssl = {
-        'ssl_cert_reqs': None
+        'ssl_cert_reqs': 'CERT_NONE'
     }
 
     return celery
