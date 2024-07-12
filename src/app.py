@@ -88,6 +88,9 @@ def process_query_task(data):
     reference_cards = locator.locate_source()
 
     response = {
+        'query': query,
+        'job_id': job_id,
+        'product_id': product_id,
         'answer': answer,
         'gpt_answer_time': end - start,
         'output_language': output_language,
