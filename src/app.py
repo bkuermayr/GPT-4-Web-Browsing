@@ -18,6 +18,10 @@ app = Flask(__name__)
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 print(f'Using Redis URL: {redis_url}')
 
+# Initialize Redis connection pool
+redis_pool = redis.ConnectionPool.from_url(redis_url, max_connections=10)
+redis_client = redis.StrictRedis(connection_pool=redis_pool, decode_responses=True)
+
 # Configure Celery
 app.config['broker_url'] = redis_url
 app.config['result_backend'] = redis_url
@@ -31,6 +35,15 @@ def make_celery(app):
     )
     celery.conf.update(app.config)
     celery.conf.broker_connection_retry_on_startup = True
+
+    # Configure Celery to use the same Redis connection pool
+    celery.conf.broker_transport_options = {
+        'max_connections': 10,
+    }
+    celery.conf.redis_backend_use_ssl = {
+        'ssl_cert_reqs': None
+    }
+
     return celery
 
 celery = make_celery(app)
