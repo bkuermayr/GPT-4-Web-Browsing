@@ -1,22 +1,24 @@
 from flask import Flask, request, jsonify
 import time
 import json
+import logging
 from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
-import logging
 from celery import Celery
 from celery.result import AsyncResult
 import redis
 import os
 
-
+# Initialize the Flask application
 app = Flask(__name__)
 
+# Configure Redis URL
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 print(f'Using Redis URL: {redis_url}')
 
+# Configure Celery
 app.config['broker_url'] = redis_url
 app.config['result_backend'] = redis_url
 
@@ -28,10 +30,10 @@ def make_celery(app):
         result_backend_thread_safe=True
     )
     celery.conf.update(app.config)
+    celery.conf.broker_connection_retry_on_startup = True
     return celery
 
 celery = make_celery(app)
-cache = redis.from_url(redis_url)
 
 @celery.task(name='app.process_query_task')
 def process_query_task(data):
@@ -61,7 +63,6 @@ def process_query_task(data):
         serper_response = None
 
     start = time.time()
-    output_language = data.get('output_language', 'en')
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content + '\n'
     end = time.time()
@@ -83,13 +84,6 @@ def process_query_task(data):
 @app.route('/api/query', methods=['POST'])
 def process_query():
     data = request.get_json()
-    query = data.get('search_query', '')
-
-    # Check if response is cached
-    cached_response = cache.get(query)
-    if cached_response:
-        return jsonify(json.loads(cached_response))
-
     task = process_query_task.apply_async(args=[data])
     return jsonify({"task_id": task.id})
 
