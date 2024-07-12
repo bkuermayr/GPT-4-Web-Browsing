@@ -15,7 +15,7 @@ import os
 app = Flask(__name__)
 
 # Configure Redis URL
-redis_url = os.getenv('REDIS_TLS_URL', 'redis://localhost:6379/0')
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 print(f'Using Redis URL: {redis_url}')
 
 # Initialize Redis connection pool
@@ -39,9 +39,6 @@ def make_celery(app):
     # Configure Celery to use the same Redis connection pool
     celery.conf.broker_transport_options = {
         'max_connections': 10,
-    }
-    celery.conf.redis_backend_use_ssl = {
-        'ssl_cert_reqs': 'CERT_NONE'
     }
 
     return celery
