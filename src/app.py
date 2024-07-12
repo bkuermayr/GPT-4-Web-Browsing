@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import time
 import json
 import logging
@@ -20,7 +20,12 @@ print(f'Using Redis URL: {redis_url}')
 
 # Initialize Redis connection pool
 redis_pool = redis.ConnectionPool.from_url(redis_url, max_connections=10)
-redis_client = redis.StrictRedis(connection_pool=redis_pool, decode_responses=True)
+
+def get_redis():
+    if 'redis' not in g:
+        g.redis = redis.StrictRedis(connection_pool=redis_pool, decode_responses=True)
+        app.logger.info("New Redis connection established.")
+    return g.redis
 
 # Configure Celery
 app.config['broker_url'] = redis_url
@@ -116,6 +121,13 @@ def task_status(task_id):
             'status': str(task_result.info),
         }
     return jsonify(response)
+
+@app.teardown_appcontext
+def close_redis_connection(exception):
+    redis_client = g.pop('redis', None)
+    if redis_client is not None:
+        redis_client.connection_pool.disconnect()
+        app.logger.info("Redis connection closed.")
 
 @app.route('/')
 def hello():
