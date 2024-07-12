@@ -117,4 +117,4 @@ References:
     locator = ReferenceLocator(gpt_answer, serper_response)
     reference_cards = locator.locate_source()
     json_formatted_cards = json.dumps(reference_cards, indent=4)
-    print(json_formatted_cards)
+    # print(json_formatted_cards)
