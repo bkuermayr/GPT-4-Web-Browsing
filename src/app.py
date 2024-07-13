@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 import time
 import json
 import logging
@@ -8,7 +8,7 @@ from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 from celery import Celery
 from celery.result import AsyncResult
-import redis
+import redis.asyncio as redis
 import os
 
 # Initialize the Flask application
@@ -17,15 +17,6 @@ app = Flask(__name__)
 # Configure Redis URL
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 print(f'Using Redis URL: {redis_url}')
-
-# Initialize Redis connection pool
-redis_pool = redis.ConnectionPool.from_url(redis_url)
-
-def get_redis():
-    if 'redis' not in g:
-        g.redis = redis.StrictRedis(connection_pool=redis_pool, decode_responses=True)
-        app.logger.info("New Redis connection established.")
-    return g.redis
 
 # Configure Celery
 app.config['broker_url'] = redis_url
@@ -41,7 +32,7 @@ def make_celery(app):
     celery.conf.update(app.config)
     celery.conf.broker_connection_retry_on_startup = True
 
-    # Configure Celery to use the same Redis connection pool
+    # Limit the number of concurrent connections
     celery.conf.broker_transport_options = {
         'max_connections': 4,
     }
@@ -51,7 +42,7 @@ def make_celery(app):
 celery = make_celery(app)
 
 @celery.task(name='app.process_query_task')
-def process_query_task(data):
+async def process_query_task(data):
     query = data.get('search_query', '')
     prompt = data.get('prompt', '')
     output_format = data.get('output_format', "")
@@ -113,7 +104,7 @@ def process_query_task(data):
     }
 
     return response
-    
+
 @app.route('/api/query', methods=['POST'])
 def process_query():
     data = request.get_json()
@@ -140,16 +131,9 @@ def task_status(task_id):
         }
     return jsonify(response)
 
-@app.teardown_appcontext
-def close_redis_connection(exception):
-    redis_client = g.pop('redis', None)
-    if redis_client is not None:
-        redis_client.connection_pool.disconnect()
-        app.logger.info("Redis connection closed.")
-
 @app.route('/')
 def hello():
     return 'Hello, World!'
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', threaded=False)
