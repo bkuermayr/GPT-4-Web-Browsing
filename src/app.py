@@ -74,6 +74,19 @@ def process_query_task(data):
             retriever = EmbeddingRetriever()
             relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
             formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
+
+            # if no urls are found, return json reponse with empty answer
+            if not formatted_relevant_docs:
+                response = {
+                    'query': query,
+                    'job_id': job_id,
+                    'product_id': product_id,
+                    'answer': {},
+                    'gpt_answer_time': 0,
+                    'output_language': output_language,
+                    'reference_cards': [],
+                }
+                return response
         else:
             formatted_relevant_docs = None
             serper_response = None
