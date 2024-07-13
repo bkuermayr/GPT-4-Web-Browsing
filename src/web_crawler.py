@@ -45,10 +45,12 @@ class WebScraper:
         try:
             # Attempt to get the webpage content with specified headers and timeout
             response = requests.get(
-                url='https://app.scrapingbee.com/api/v1/',
+                url='https://api.scrapfly.io/scrape',
                 params={
-                    'api_key': os.getenv('SCRAPING_BEE_API_KEY'),
-                    'url': url, 
+                    'key': os.getenv('SCRAPFLY_API_KEY'),
+                    'url': url,
+                    'render_js': 'true',
+                    'asp': 'true',
                 },
             )
 
