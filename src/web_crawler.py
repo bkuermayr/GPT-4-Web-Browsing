@@ -49,7 +49,7 @@ class WebScraper:
                 params={
                     'key': os.getenv('SCRAPFLY_API_KEY'),
                     'url': url,
-                    'render_js': 'true',
+                    'render_js': 'false',
                     'asp': 'true',
                 },
             )

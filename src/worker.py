@@ -1,6 +1,7 @@
 import os
 import redis
 from rq import Worker, Queue, Connection
+from tasks import process_query_task
 
 listen = ['default']
 
