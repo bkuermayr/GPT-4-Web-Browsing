@@ -1,8 +1,11 @@
 # src/tasks.py
 
+import os
 import time
 import json
 import logging
+
+import requests
 from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
@@ -68,5 +71,12 @@ def process_query_task(data):
         'output_language': output_language,
         'reference_cards': reference_cards,
     }
+
+    try:
+        base_url = os.getenv('JOB_SERVER_URL', 'http://localhost:5000')
+        post_response = requests.post(f'{base_url}/save-automation-response', json=response)    
+        logging.info(f'Posted response to save-automation-response endpoint with status code: {post_response.status_code}')
+    except Exception as e:
+        logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
 
     return response
