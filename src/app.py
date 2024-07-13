@@ -99,12 +99,14 @@ def process_query_task(data):
 
     locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
+    # Parse the JSON string to a Python dictionary (JSON object)
+    answer_json_object = json.loads(answer)
 
     response = {
         'query': query,
         'job_id': job_id,
         'product_id': product_id,
-        'answer': answer,
+        'answer': answer_json_object,
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'reference_cards': reference_cards,
