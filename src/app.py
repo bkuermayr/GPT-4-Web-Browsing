@@ -33,7 +33,7 @@ def task_status(task_id):
         }
     else:
         response = {
-            'state': job.get_status(),
+            'state': 'PENDING',
             'status': 'Pending...'
         }
     return jsonify(response)
