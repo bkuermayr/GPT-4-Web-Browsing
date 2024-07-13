@@ -6,43 +6,49 @@ from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
-from celery import Celery
-from celery.result import AsyncResult
-import redis.asyncio as redis
-import os
+from rq import Queue
+from rq.job import Job
+from worker import conn
 
 # Initialize the Flask application
 app = Flask(__name__)
 
-# Configure Redis URL
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-print(f'Using Redis URL: {redis_url}')
+# Initialize Redis Queue
+q = Queue(connection=conn)
 
-# Configure Celery
-app.config['broker_url'] = redis_url
-app.config['result_backend'] = redis_url
-
-def make_celery(app):
-    celery = Celery(
-        app.import_name,
-        broker=app.config['broker_url'],
-        backend=app.config['result_backend'],
-        result_backend_thread_safe=True
+@app.route('/api/query', methods=['POST'])
+def process_query():
+    data = request.get_json()
+    job = q.enqueue_call(
+        func=process_query_task, args=(data,), result_ttl=5000
     )
-    celery.conf.update(app.config)
-    celery.conf.broker_connection_retry_on_startup = True
+    return jsonify({"task_id": job.get_id()})
 
-    # Limit the number of concurrent connections
-    celery.conf.broker_transport_options = {
-        'max_connections': 4,
-    }
+@app.route('/api/status/<task_id>', methods=['GET'])
+def task_status(task_id):
+    job = Job.fetch(task_id, connection=conn)
+    if job.is_finished:
+        response = {
+            'state': 'FINISHED',
+            'result': job.result,
+        }
+    elif job.is_failed:
+        response = {
+            'state': 'FAILED',
+            'status': str(job.exc_info),
+        }
+    else:
+        response = {
+            'state': job.get_status(),
+            'status': 'Pending...'
+        }
+    return jsonify(response)
 
-    return celery
+@app.route('/')
+def hello():
+    return 'Hello, World!'
 
-celery = make_celery(app)
-
-@celery.task(name='app.process_query_task')
-async def process_query_task(data):
+def process_query_task(data):
     query = data.get('search_query', '')
     prompt = data.get('prompt', '')
     output_format = data.get('output_format', "")
@@ -65,7 +71,7 @@ async def process_query_task(data):
         relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
 
-        # if no urls are found, return json reponse with empty answer
+        # if no urls are found, return json response with empty answer
         if not formatted_relevant_docs:
             response = {
                 'query': query,
@@ -104,36 +110,6 @@ async def process_query_task(data):
     }
 
     return response
-
-@app.route('/api/query', methods=['POST'])
-def process_query():
-    data = request.get_json()
-    task = process_query_task.apply_async(args=[data])
-    return jsonify({"task_id": task.id})
-
-@app.route('/api/status/<task_id>', methods=['GET'])
-def task_status(task_id):
-    task_result = AsyncResult(task_id, app=celery)
-    if task_result.state == 'PENDING':
-        response = {
-            'state': task_result.state,
-            'status': 'Pending...'
-        }
-    elif task_result.state != 'FAILURE':
-        response = {
-            'state': task_result.state,
-            'result': task_result.result,
-        }
-    else:
-        response = {
-            'state': task_result.state,
-            'status': str(task_result.info),
-        }
-    return jsonify(response)
-
-@app.route('/')
-def hello():
-    return 'Hello, World!'
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', threaded=False)
