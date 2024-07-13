@@ -44,8 +44,13 @@ class WebScraper:
 
         try:
             # Attempt to get the webpage content with specified headers and timeout
-            payload = { 'api_key': '8b41c3983c0430282f21fe4e12e99aca', 'url': url }
-            response = requests.get('https://api.scraperapi.com/', params=payload)
+            response = requests.get(
+                url='https://app.scrapingbee.com/api/v1/',
+                params={
+                    'api_key': os.getenv('SCRAPING_BEE_API_KEY'),
+                    'url': url, 
+                },
+            )
 
             if response.status_code == 200:
                 return response
