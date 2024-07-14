@@ -6,11 +6,13 @@ import os
 import time
 import ssl
 import requests
+from gevent import monkey
+monkey.patch_all()  # Apply gevent monkey patches
+
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 from retrieval import EmbeddingRetriever
-
 
 # Load environment variables from .env file
 load_dotenv()

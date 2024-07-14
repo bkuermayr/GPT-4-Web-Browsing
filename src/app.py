@@ -3,6 +3,8 @@ from celery import Celery
 from dotenv import load_dotenv
 import os
 import ssl
+from gevent import monkey
+monkey.patch_all()  # Apply gevent monkey patches
 
 from tasks import process_query_task
 
