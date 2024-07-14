@@ -13,13 +13,13 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configure Celery using environment variables
-app.config['CELERY_BROKER_URL'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-app.config['CELERY_RESULT_BACKEND'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+app.config['broker_url'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+app.config['result_backend'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 # Define SSL options if using rediss
-if app.config['CELERY_BROKER_URL'].startswith('rediss://'):
+if app.config['broker_url'].startswith('rediss://'):
     ssl_options = {
-        'ssl_cert_reqs': ssl.CERT_NONE  # or ssl.CERT_OPTIONAL, ssl.CERT_REQUIRED
+        'ssl_cert_reqs': ssl.CERT_NONE  # Set to CERT_NONE if you don't have SSL certificates
     }
 else:
     ssl_options = None
@@ -27,11 +27,14 @@ else:
 def make_celery(app):
     celery = Celery(
         app.import_name,
-        backend=app.config['CELERY_RESULT_BACKEND'],
-        broker=app.config['CELERY_BROKER_URL'],
-        broker_use_ssl=ssl_options,
-        redis_backend_use_ssl=ssl_options
+        broker=app.config['broker_url'],
+        backend=app.config['result_backend']
     )
+    if ssl_options:
+        celery.conf.update(
+            broker_use_ssl=ssl_options,
+            redis_backend_use_ssl=ssl_options
+        )
     celery.conf.update(app.config)
     return celery
 

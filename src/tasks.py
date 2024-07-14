@@ -6,11 +6,11 @@ import os
 import time
 import ssl
 import requests
-
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 from retrieval import EmbeddingRetriever
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,16 +22,18 @@ backend_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 # Define SSL options if using rediss
 if broker_url.startswith('rediss://'):
     ssl_options = {
-        'ssl_cert_reqs': ssl.CERT_NONE  # or ssl.CERT_OPTIONAL, ssl.CERT_REQUIRED
+        'ssl_cert_reqs': ssl.CERT_NONE  # Set to CERT_NONE if you don't have SSL certificates
     }
 else:
     ssl_options = None
 
-celery = Celery('tasks', 
-                broker=broker_url, 
-                backend=backend_url,
-                broker_use_ssl=ssl_options,
-                redis_backend_use_ssl=ssl_options)
+celery = Celery('tasks', broker=broker_url, backend=backend_url)
+
+if ssl_options:
+    celery.conf.update(
+        broker_use_ssl=ssl_options,
+        redis_backend_use_ssl=ssl_options
+    )
 
 @celery.task
 def process_query_task(data):
