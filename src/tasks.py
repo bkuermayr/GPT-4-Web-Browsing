@@ -1,11 +1,10 @@
 import json
+import logging
 from celery import Celery
 from dotenv import load_dotenv
 import os
 import time
 import ssl
-
-from flask import logging
 import requests
 
 from fetch_web_content import WebContentFetcher
