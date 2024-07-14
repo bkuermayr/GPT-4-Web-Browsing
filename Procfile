@@ -1,2 +1,2 @@
 web: gunicorn -w 4 src.app:app
-worker: python src/worker.py
+worker: celery -A src.app.celery worker --loglevel=info --concurrency=8
