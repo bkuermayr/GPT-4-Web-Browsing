@@ -33,7 +33,8 @@ def make_celery(app):
     if ssl_options:
         celery.conf.update(
             broker_use_ssl=ssl_options,
-            redis_backend_use_ssl=ssl_options
+            redis_backend_use_ssl=ssl_options,
+            broker_connection_retry_on_startup=True
         )
     celery.conf.update(app.config)
     return celery
