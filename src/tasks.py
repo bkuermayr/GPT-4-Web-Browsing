@@ -101,8 +101,12 @@ def process_query_task(data):
 
     try:
         base_url = os.getenv('JOB_SERVER_URL', 'http://localhost:5000')
-        post_response = grequests.post(f'{base_url}/save-automation-response', json=response)    
-        logging.info(f'Posted response to save-automation-response endpoint with status code: {post_response.status_code}')
+        req = grequests.post(f'{base_url}/save-automation-response', json=response)  
+        post_response = grequests.map([req])[0]  
+        if post_response and post_response.status_code == 200:
+            logging.info(f'Posted response to save-automation-response endpoint with status code: {post_response.status_code}')
+        else:
+            logging.error(f'Failed to post response with status code: {post_response.status_code}')
     except Exception as e:
         logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
 
