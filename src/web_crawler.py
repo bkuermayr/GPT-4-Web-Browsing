@@ -39,16 +39,18 @@ class WebScraper:
             # Skip PDF files which are time consuming
             return None
 
+        request_url = 'https://api.scrapfly.io/scrape'
+        params = {
+            'key': os.getenv('SCRAPFLY_API_KEY'),
+            'url': url,
+            'render_js': 'false',
+            'asp': 'true',
+        }
+
         try:
-            # Attempt to get the webpage content with specified headers and timeout
             req = grequests.get(
-                url='https://api.scrapfly.io/scrape',
-                params={
-                    'key': os.getenv('SCRAPFLY_API_KEY'),
-                    'url': url,
-                    'render_js': 'false',
-                    'asp': 'true',
-                },
+                request_url,
+                params=params,
                 headers=self.headers,
             )
 
