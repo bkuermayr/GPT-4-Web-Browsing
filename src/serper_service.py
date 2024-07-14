@@ -1,4 +1,4 @@
-import requests
+import grequests
 import re
 import json
 import yaml
@@ -41,7 +41,7 @@ class SerperClient:
         payload = json.dumps(serper_settings)
 
         # Perform the POST request to the Serper API and return the JSON response
-        response = requests.request("POST", self.url, headers=self.headers, data=payload)
+        response = grequests.request("POST", self.url, headers=self.headers, data=payload)
         return response.json()
 
     def _contains_chinese(self, query: str):
