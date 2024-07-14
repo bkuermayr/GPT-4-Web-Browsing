@@ -6,7 +6,6 @@ import os
 from dotenv import load_dotenv
 
 
-
 class SerperClient:
     def __init__(self):
         # Load configuration from config.yaml file
@@ -17,7 +16,6 @@ class SerperClient:
         # Load configuration from .env file
         load_dotenv()
 
-
         # Set up the URL and headers for the Serper API
         self.url = "https://google.serper.dev/search"
         self.headers = {
@@ -25,7 +23,7 @@ class SerperClient:
             "Content-Type": "application/json"
         }
 
-    def serper(self, query: str,search_location:str = "us",host_language:str = "de-de"):
+    def serper(self, query: str, search_location: str = "us", host_language: str = "de-de"):
         # Configure the query parameters for Serper API
         # Exclude youtube.com, reddit.com, and eet.com from the search results
         query = query + " -site:youtube.com -site:reddit.com -site:eet.com -site:ebay.com"
@@ -35,14 +33,18 @@ class SerperClient:
 
         # Check if the query contains Chinese characters and adjust settings accordingly
         if self._contains_chinese(query):
-            serper_settings.update({"gl": "cn", "hl": "zh-cn",})
-        
+            serper_settings.update({"gl": "cn", "hl": "zh-cn"})
 
         payload = json.dumps(serper_settings)
 
-        # Perform the POST request to the Serper API and return the JSON response
-        response = grequests.request("POST", self.url, headers=self.headers, data=payload)
-        return response.json()
+        # Perform the POST request to the Serper API
+        req = grequests.post(self.url, headers=self.headers, data=payload)
+        response = grequests.map([req])[0]
+
+        if response and response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f'Request failed with status {response.status_code}')
 
     def _contains_chinese(self, query: str):
         # Check if a string contains Chinese characters using a regular expression
@@ -66,18 +68,18 @@ class SerperClient:
 
         # Organize the extracted data into a dictionary and return
         output_dict = {
-            'query': query, 
-            'language': language, 
-            'count': count, 
-            'titles': titles, 
-            'links': links, 
+            'query': query,
+            'language': language,
+            'count': count,
+            'titles': titles,
+            'links': links,
             'snippets': snippets
         }
 
         return output_dict
 
 # Usage example
-if __name__ == "__main__":    
+if __name__ == "__main__":
     client = SerperClient()
     query = "What happened to Silicon Valley Bank"
     response = client.serper(query)
