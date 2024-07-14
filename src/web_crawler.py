@@ -1,10 +1,8 @@
 from dotenv import load_dotenv
-import requests
+import grequests
 import re
 from bs4 import BeautifulSoup
 import os
-
-import requests
 
 # Load .env file
 load_dotenv()
@@ -36,15 +34,14 @@ class WebScraper:
             }
 
     def get_webpage_html(self, url):
-        # Fetch the HTML content of a webpage from a given URL
-        response = requests.Response()  # Create an empty Response object
+        # Fetch the HTML content of a webpage from a given URL using grequests
         if url.endswith(".pdf"):
             # Skip PDF files which are time consuming
-            return response
+            return None
 
         try:
             # Attempt to get the webpage content with specified headers and timeout
-            response = requests.get(
+            req = grequests.get(
                 url='https://api.scrapfly.io/scrape',
                 params={
                     'key': os.getenv('SCRAPFLY_API_KEY'),
@@ -52,31 +49,37 @@ class WebScraper:
                     'render_js': 'false',
                     'asp': 'true',
                 },
+                headers=self.headers,
             )
 
-            if response.status_code == 200:
+            response = grequests.map([req])[0]
+
+            if response and response.status_code == 200:
                 return response
             else:
                 raise Exception(f'Request failed with status {response.status_code}')  
 
-        except requests.exceptions.Timeout:
-            # Add timeout exception handling here
-            return response
+        except Exception as e:
+            print(f"Error fetching {url}: {e}")
+            return None
         
     def convert_html_to_soup(self, html):
         # Convert the HTML string to a BeautifulSoup object for parsing
-        html_string = html.text
-        return BeautifulSoup(html_string, "lxml")
+        if html:
+            html_string = html.text
+            return BeautifulSoup(html_string, "lxml")
+        return None
 
     def extract_main_content(self, html_soup, rule=0):
         # Extract the main content from a BeautifulSoup object
         main_content = []
         tag_rule = re.compile("^(h[1-6]|p|div)" if rule == 1 else "^(h[1-6]|p)")
         # Iterate through specified tags and collect their text
-        for tag in html_soup.find_all(tag_rule):
-            tag_text = tag.get_text().strip()
-            if tag_text and len(tag_text.split()) > 10:
-                main_content.append(tag_text)
+        if html_soup:
+            for tag in html_soup.find_all(tag_rule):
+                tag_text = tag.get_text().strip()
+                if tag_text and len(tag_text.split()) > 10:
+                    main_content.append(tag_text)
         return "\n".join(main_content).strip()
 
     def scrape_url(self, url, rule=0):
@@ -93,4 +96,3 @@ if __name__ == "__main__":
     test_url = "https://en.wikipedia.org/wiki/Apple_Inc."
     main_content = scraper.scrape_url(test_url)
     print(main_content)
-    

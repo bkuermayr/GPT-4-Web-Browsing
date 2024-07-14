@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 import os
 import time
 import ssl
-import requests
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
+import grequests
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
@@ -101,7 +101,7 @@ def process_query_task(data):
 
     try:
         base_url = os.getenv('JOB_SERVER_URL', 'http://localhost:5000')
-        post_response = requests.post(f'{base_url}/save-automation-response', json=response)    
+        post_response = grequests.post(f'{base_url}/save-automation-response', json=response)    
         logging.info(f'Posted response to save-automation-response endpoint with status code: {post_response.status_code}')
     except Exception as e:
         logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
