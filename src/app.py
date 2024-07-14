@@ -1,8 +1,13 @@
 from flask import Flask, request, jsonify
 from celery import Celery
+from dotenv import load_dotenv
 import os
+import ssl
 
 from tasks import process_query_task
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -11,11 +16,21 @@ app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 app.config['CELERY_RESULT_BACKEND'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
+# Define SSL options if using rediss
+if app.config['CELERY_BROKER_URL'].startswith('rediss://'):
+    ssl_options = {
+        'ssl_cert_reqs': ssl.CERT_NONE  # or ssl.CERT_OPTIONAL, ssl.CERT_REQUIRED
+    }
+else:
+    ssl_options = None
+
 def make_celery(app):
     celery = Celery(
         app.import_name,
         backend=app.config['CELERY_RESULT_BACKEND'],
-        broker=app.config['CELERY_BROKER_URL']
+        broker=app.config['CELERY_BROKER_URL'],
+        broker_use_ssl=ssl_options,
+        redis_backend_use_ssl=ssl_options
     )
     celery.conf.update(app.config)
     return celery

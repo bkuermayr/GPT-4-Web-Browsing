@@ -1,23 +1,38 @@
-# src/tasks.py
-
+import json
+from celery import Celery
+from dotenv import load_dotenv
 import os
 import time
-import json
-import logging
+import ssl
 
+from flask import logging
 import requests
+
 from fetch_web_content import WebContentFetcher
-from retrieval import EmbeddingRetriever
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
-from celery import Celery
-import os
-import time
+from retrieval import EmbeddingRetriever
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure Celery using environment variables
+broker_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+backend_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+# Define SSL options if using rediss
+if broker_url.startswith('rediss://'):
+    ssl_options = {
+        'ssl_cert_reqs': ssl.CERT_NONE  # or ssl.CERT_OPTIONAL, ssl.CERT_REQUIRED
+    }
+else:
+    ssl_options = None
+
 celery = Celery('tasks', 
-                broker=os.getenv('REDIS_URL', 'redis://localhost:6379/0'), 
-                backend=os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
+                broker=broker_url, 
+                backend=backend_url,
+                broker_use_ssl=ssl_options,
+                redis_backend_use_ssl=ssl_options)
 
 @celery.task
 def process_query_task(data):
