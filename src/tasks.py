@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 import os
 import time
 import ssl
-from gevent import monkey
-monkey.patch_all()  # Apply gevent monkey patches
 
 import grequests
 from fetch_web_content import WebContentFetcher
