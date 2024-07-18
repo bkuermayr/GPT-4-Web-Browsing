@@ -34,19 +34,18 @@ class WebScraper:
             }
 
     def get_webpage_html(self, url):
-        # Fetch the HTML content of a webpage from a given URL using grequests
-        if url.endswith(".pdf") or url.endswith(".txt") or url.endswith(".docx") or url.endswith(".doc") or url.endswith(".ppt") or url.endswith(".pptx"):
-            # Skip PDF files which are time consuming
-            return None
-        
-        # Assuming `response` is the grequests response object
-        response = grequests.head(url)  # Use HEAD instead of GET
-        
-        # Check if the Content-Type header indicates HTML content
-        if not response.headers.get('Content-Type', '').startswith('text/html'):
-            # Skip non-HTML content
-            return None
+        # Create a HEAD request to fetch headers only
+        req = grequests.head(url)
 
+        # Send the request and get the response
+        response = grequests.map([req])[0]  # map returns a list of responses
+
+        if response:  # Ensure response is not None
+            # Check if the Content-Type header indicates HTML content
+            if not response.headers.get('Content-Type', '').startswith('text/html'):
+                # Skip non-HTML content
+                return None
+            
         request_url = 'https://api.scrapfly.io/scrape'
         params = {
             'key': os.getenv('SCRAPFLY_API_KEY'),
