@@ -88,7 +88,7 @@ def process_query_task(data):
     try:
         answer_json_object = json.loads(answer)
     except json.JSONDecodeError as e:
-        logging.error(f'JSONDecodeError: {e}')
+        logging.error(f'JSONDecodeError: {e} for answer: {answer}')
         # Attempt to clean the answer string
         answer_clean = answer.split('\n')[0]  # This assumes the valid JSON is on the first line
         try:
