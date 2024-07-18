@@ -52,6 +52,7 @@ class WebScraper:
             'key': os.getenv('SCRAPFLY_API_KEY'),
             'url': url,
             'render_js': 'false',
+            'cache': 'true',
             'asp': 'true',
         }
 
