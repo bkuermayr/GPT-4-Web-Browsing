@@ -35,8 +35,16 @@ class WebScraper:
 
     def get_webpage_html(self, url):
         # Fetch the HTML content of a webpage from a given URL using grequests
-        if url.endswith(".pdf"):
+        if url.endswith(".pdf") or url.endswith(".txt") or url.endswith(".docx") or url.endswith(".doc") or url.endswith(".ppt") or url.endswith(".pptx"):
             # Skip PDF files which are time consuming
+            return None
+        
+        # Assuming `response` is the grequests response object
+        response = grequests.get(url)  # Example, replace with actual request logic
+
+        # Check if the Content-Type header indicates HTML content
+        if not response.headers.get('Content-Type', '').startswith('text/html'):
+            # Skip non-HTML content
             return None
 
         request_url = 'https://api.scrapfly.io/scrape'
@@ -95,6 +103,6 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://en.wikipedia.org/wiki/Apple_Inc."
+    test_url = "https://ping.com/en-us/clubs/hybrids/g425"
     main_content = scraper.scrape_url(test_url)
     print(main_content)
