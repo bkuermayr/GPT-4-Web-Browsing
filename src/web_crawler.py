@@ -40,8 +40,8 @@ class WebScraper:
             return None
         
         # Assuming `response` is the grequests response object
-        response = grequests.get(url)  # Example, replace with actual request logic
-
+        response = grequests.head(url)  # Use HEAD instead of GET
+        
         # Check if the Content-Type header indicates HTML content
         if not response.headers.get('Content-Type', '').startswith('text/html'):
             # Skip non-HTML content
