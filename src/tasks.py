@@ -84,18 +84,22 @@ def process_query_task(data):
 
     locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
+    
     # Parse the JSON string to a Python dictionary (JSON object)
+    prefix = '```json'
+    suffix = '```'
+    
+    if answer.startswith(prefix) and answer.endswith(suffix):
+        # Remove the prefix and suffix
+        answer_clean = answer[len(prefix):-len(suffix)]
+    else:
+        answer_clean = answer
+    
     try:
-        answer_json_object = json.loads(answer)
+        answer_json_object = json.loads(answer_clean)
     except json.JSONDecodeError as e:
-        logging.error(f'JSONDecodeError: {e} for answer: {answer}')
-        # Attempt to clean the answer string
-        answer_clean = answer.split('\n')[0]  # This assumes the valid JSON is on the first line
-        try:
-            answer_json_object = json.loads(answer_clean)
-        except json.JSONDecodeError as e_clean:
-            logging.error(f'Failed to parse JSON even after cleaning: {e_clean}')
-            answer_json_object = {}
+        logging.error(f'JSONDecodeError: {e} for answer: {answer_clean}')
+        answer_json_object = {}
 
     response = {
         'query': query,
