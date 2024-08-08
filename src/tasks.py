@@ -11,6 +11,8 @@ from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 from retrieval import EmbeddingRetriever
+from csv_postprocessor import process_data
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -123,3 +125,11 @@ def process_query_task(data):
         logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
 
     return response
+
+@app.route('/api/process_csv_feed', methods=['POST'])
+def trigger_process_csv_feed():
+    data = request.get_json()
+    url = data.get('url')
+    filename = data.get('filename')
+    task = process_csv_feed.apply_async(args=[url, filename])
+    return jsonify({"task_id": task.id, "status_url": f"/api/status/csv_feed/{task.id}"})

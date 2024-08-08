@@ -6,7 +6,7 @@ import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task
+from tasks import process_query_task, process_csv_feed
 
 # Load environment variables from .env file
 load_dotenv()
@@ -68,6 +68,13 @@ def task_status(task_id):
             'status': str(task.info),  # this is the exception raised
         }
     return jsonify(response)
+
+@app.route('/api/process_csv_feed', methods=['GET'])
+def trigger_process_csv_feed():
+    url = request.args.get('url')
+    filename = request.args.get('filename')
+    task = process_csv_feed.apply_async(args=[url, filename])
+    return jsonify({"task_id": task.id})
 
 @app.route('/')
 def hello():
