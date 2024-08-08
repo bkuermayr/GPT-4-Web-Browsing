@@ -128,9 +128,7 @@ def process_query_task(data):
     return response
 
 @celery.task
-def process_csv_feed(data):
-    url = data.get('url')
-    filename = data.get('filename')
+def process_csv_feed(url,filename):
     process_data(url, filename)
 
     return jsonify({"status": "success"})
