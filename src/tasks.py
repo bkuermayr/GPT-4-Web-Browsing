@@ -6,6 +6,7 @@ import os
 import time
 import ssl
 
+from flask import app, jsonify
 import grequests
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
@@ -126,10 +127,10 @@ def process_query_task(data):
 
     return response
 
-@app.route('/api/process_csv_feed', methods=['POST'])
-def trigger_process_csv_feed():
-    data = request.get_json()
+@celery.task
+def process_csv_feed(data):
     url = data.get('url')
     filename = data.get('filename')
-    task = process_csv_feed.apply_async(args=[url, filename])
-    return jsonify({"task_id": task.id, "status_url": f"/api/status/csv_feed/{task.id}"})
+    process_data(url, filename)
+
+    return jsonify({"status": "success"})
