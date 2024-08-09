@@ -6,7 +6,6 @@ import os
 import time
 import ssl
 
-from flask import app, jsonify
 import grequests
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
@@ -131,4 +130,7 @@ def process_query_task(data):
 def process_csv_feed(url,filename):
     process_data(url, filename)
 
-    return jsonify({"status": "success"})
+    return {
+        'status': 'success',
+        'message': f'Processed CSV feed from {url} with filename {filename}'
+    }
