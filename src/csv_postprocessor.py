@@ -4,7 +4,7 @@ import requests
 from ftp_client import upload_file
 
 
-def process_data(csv_feed_url, output_file_name, remote_directory='/'):
+def process_data(csv_feed_url, output_file_name):
     # Download the CSV file
     response = requests.get(csv_feed_url)
     local_file_name = csv_feed_url.split('/')[-1]
@@ -200,10 +200,10 @@ def process_data(csv_feed_url, output_file_name, remote_directory='/'):
 
     df.to_csv(output_file_name, sep='|', index=False)
     # Upload the file to the FTP server
-    upload_file(output_file_name, output_file_name,remote_directory)
+    upload_file(output_file_name, '/chroot/home/ae2932a1/8f93964a1a.nxcli.io/pub/media/importexport/m/a/' + output_file_name)
 
 # Example usage:
 # process_data('https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/feeds/9884179a-a650-42b2-8f83-1ce58c97d84f.csv', 'magento_feed_1_1.csv')
 
 if __name__ == "__main__":
-    process_data('https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/feeds/9884179a-a650-42b2-8f83-1ce58c97d84f.csv', 'magento_feed_1_1.csv','/8f93964a1a.nxcli.io/pub/media/importexport/m/a/')
+    process_data('https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/feeds/9884179a-a650-42b2-8f83-1ce58c97d84f.csv', 'magento_feed_1_1.csv')
