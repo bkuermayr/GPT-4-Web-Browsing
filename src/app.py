@@ -73,7 +73,8 @@ def task_status(task_id):
 def trigger_process_csv_feed():
     url = request.args.get('url')
     filename = request.args.get('filename')
-    task = process_csv_feed.apply_async(args=[url, filename])
+    remote_directory = request.args.get('remote_directory')
+    task = process_csv_feed.apply_async(args=[url, filename,remote_directory])
     return jsonify({"task_id": task.id})
 
 @app.route('/')

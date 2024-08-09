@@ -127,10 +127,10 @@ def process_query_task(data):
     return response
 
 @celery.task
-def process_csv_feed(url,filename):
-    process_data(url, filename)
+def process_csv_feed(url,filename,remote_directory):
+    process_data(url, filename, remote_directory)
 
     return {
         'status': 'success',
-        'message': f'Processed CSV feed from {url} with filename {filename}'
+        'message': f'Processed CSV feed from {url} with filename {filename} and uploaded to {remote_directory}'
     }
