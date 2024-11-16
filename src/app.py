@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
-from celery import Celery
+from celery import Celery,group
 from dotenv import load_dotenv
 import os
 import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task, process_csv_feed
+from tasks import process_query_task, process_csv_feed, test
 
 # Load environment variables from .env file
 load_dotenv()
@@ -76,6 +76,33 @@ def trigger_process_csv_feed():
     remote_directory = request.args.get('remote_directory')
     task = process_csv_feed.apply_async(args=[url, remote_directory, filename])
     return jsonify({"task_id": task.id})
+
+@app.route('/test',methods=['POST'])
+def createDescription():
+    data = request.get_json() 
+    # automation id, 
+    # produkt id
+      # celery groupd hier ezeugen, jeder Task ist product id nehmen und web search durchführen + ai generieren
+    products = data.get('product_ids',[])
+    subtasks = []
+    for x in products:
+        subtasks.append(test.s(x))
+    job = group(subtasks)
+    # Falls das obere nicht funktioniert group(process_query_task.s(x) for x in products)
+    task = job.apply_async()
+    task.save()
+    # task.completed_count() anzahl finished subtasks
+    return jsonify({"task_id": task.id})
+
+# Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
+
+@app.route('/test/<task_id>', methods=['GET'])
+def test2(task_id):
+    task = celery.GroupResult.restore(task_id)
+    print(task.ready())
+    # Ready alles ist fertig wenn True
+    # Completee alles ohne Fehler wenn True ?????? was das für statuse
+    return jsonify({"res":task.completed_count()})
 
 @app.route('/')
 def hello():

@@ -127,6 +127,12 @@ def process_query_task(data):
     return response
 
 @celery.task
+def test(product_id):
+    logging.info('Test')
+    return product_id
+
+
+@celery.task
 def process_csv_feed(url,remote_directory, filename):
     process_data(url, remote_directory, filename)
 
