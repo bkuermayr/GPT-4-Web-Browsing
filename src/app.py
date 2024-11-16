@@ -97,12 +97,15 @@ def createDescription():
 # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
 
 @app.route('/test/<task_id>', methods=['GET'])
-def test2(task_id):
+def taskGroupStatus(task_id):
     task = celery.GroupResult.restore(task_id)
-    print(task.ready())
+    response = {
+            'comp_num':task.completed_count(),
+            'done':task.ready()
+    }
     # Ready alles ist fertig wenn True
     # Completee alles ohne Fehler wenn True ?????? was das für statuse
-    return jsonify({"res":task.completed_count()})
+    return jsonify(task)
 
 @app.route('/')
 def hello():
