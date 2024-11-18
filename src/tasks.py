@@ -52,9 +52,9 @@ def process_query_task(productID,productName,data):
     #url = data.get('whitelist',"")
     #temp = ""
     #if len(url) >= 1:
-    #    temp = url[0]
+    #    temp = f"site:{url[0]}"
     #for i in range(1,len(url)):
-    #    temp = f"{temp} OR {url[i]}"
+    #    temp = f"{temp} OR site:{url[i]}"
     # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
