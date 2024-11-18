@@ -3,6 +3,7 @@ from celery import Celery,group
 from dotenv import load_dotenv
 import os
 import ssl
+from supabase import create_client,Client
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
@@ -43,6 +44,10 @@ def make_celery(app):
 
 celery = make_celery(app)
 
+url = os.getenv("SUPABASE_URL")
+key = os.getenv("SUPABASE_KEY")
+client = create_client(url,key)
+
 @app.route('/api/query', methods=['POST'])
 def process_query():
     data = request.get_json()
@@ -80,18 +85,20 @@ def trigger_process_csv_feed():
 @app.route('/test',methods=['POST'])
 def createDescription():
     data = request.get_json() 
-    # automation id, 
-    # produkt id
-      # celery groupd hier ezeugen, jeder Task ist product id nehmen und web search durchführen + ai generieren
+    job_id = data.get('job_id','') 
     products = data.get('product_ids',[])
+    # Datenbank daten holen
+    try:
+        response = client.table('automation').select('*').eq("id",job_id).single().execute()
+        autoData = response.data
+    except Exception as e:
+        print(f"Error: {e}")
     subtasks = []
     for x in products:
         subtasks.append(test.s(x))
     job = group(subtasks)
-    # Falls das obere nicht funktioniert group(process_query_task.s(x) for x in products)
     task = job.apply_async()
     task.save()
-    # task.completed_count() anzahl finished subtasks
     return jsonify({"task_id": task.id})
 
 # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
