@@ -7,7 +7,7 @@ from supabase import create_client,Client
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task, process_csv_feed, test
+from tasks import process_query_task, process_csv_feed
 
 # Load environment variables from .env file
 load_dotenv()
@@ -86,16 +86,17 @@ def trigger_process_csv_feed():
 def createDescription():
     data = request.get_json() 
     job_id = data.get('job_id','') 
-    products = data.get('product_ids',[])
-    # Datenbank daten holen
+    products_ids = data.get('product_ids',[])
     try:
         response = client.table('automation').select('*').eq("id",job_id).single().execute()
+        products = client.table('products').select('id,title').in_("id",products_ids).execute().data
         autoData = response.data
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({"Error":True})
     subtasks = []
     for x in products:
-        subtasks.append(test.s(x))
+        subtasks.append(process_query_task.s(x['id'],x['title'],jsonify(autoData)))
     job = group(subtasks)
     task = job.apply_async()
     task.save()

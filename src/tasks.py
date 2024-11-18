@@ -38,16 +38,16 @@ if ssl_options:
     )
 
 @celery.task
-def process_query_task(data):
-    query = data.get('search_query', '')
+def process_query_task(productID,productName,data):
+    query = productName
     prompt = data.get('prompt', '')
-    output_format = data.get('output_format', "")
+    output_format = data.get('output_format', "json")
     profile = data.get('profile', "")
     search_location = data.get('search_location', "")
     search_language = data.get('search_language', "")
     output_language = data.get('output_language', "")
     job_id = data.get('job_id', "")
-    product_id = data.get('product_id', "")
+    product_id = productID
     use_web_search = data.get('use_web_search', True)
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
@@ -125,11 +125,6 @@ def process_query_task(data):
         logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
 
     return response
-
-@celery.task
-def test(product_id):
-    logging.info('Test')
-    return product_id
 
 
 @celery.task
