@@ -102,7 +102,6 @@ def createDescription():
     task.save()
     return jsonify({"task_id": task.id})
 
-# Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
 
 @app.route('/test/<task_id>', methods=['GET'])
 def taskGroupStatus(task_id):
