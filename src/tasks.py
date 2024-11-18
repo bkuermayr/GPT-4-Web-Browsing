@@ -55,6 +55,7 @@ def process_query_task(productID,productName,data):
     #    temp = f"site:{url[0]}"
     #for i in range(1,len(url)):
     #    temp = f"{temp} OR site:{url[i]}"
+    # query = temp + query
     # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
