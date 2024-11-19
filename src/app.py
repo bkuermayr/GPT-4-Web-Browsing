@@ -8,7 +8,7 @@ from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
 from tasks import process_query_task, process_csv_feed
-
+from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()
 
@@ -43,10 +43,6 @@ def make_celery(app):
     return celery
 
 celery = make_celery(app)
-
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-client = create_client(url,key)
 
 @app.route('/api/query', methods=['POST'])
 def process_query():
@@ -101,7 +97,7 @@ def createDescription():
                 searchAttributes = f'{searchAttributes} {x['special_field']};'
             else:
                 aiAttributes = f'{aiAttributes} {x['special_field']};'
-        products = client.table('products').select(f'id,title,custom_fields').in_("id",products_ids).execute().data
+        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
     except Exception as e:
