@@ -68,6 +68,7 @@ class GPTAnswer:
         summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
+        #print(summary_prompt)
         gpt_answer = llm([HumanMessage(content=summary_prompt)])
         return gpt_answer
 

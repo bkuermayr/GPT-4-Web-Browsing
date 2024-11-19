@@ -6,7 +6,7 @@ import time
 import json
 
 if __name__ == "__main__":
-    query = "TaylorMade - Hybrid - Qi10"
+    query = "site:nothing.com TaylorMade - Hybrid - Qi10"
     prompt = "Was sind die Produkthighlights vom  TaylorMade - Hybrid - Qi10? Schreibe daraufhin eine Produktbeschreibung"
     output_format = "json" # User can specify output format
     profile = "expert for product data and product description copywriter for a renowned ecommerce company. " # User can define the role for LLM
@@ -21,7 +21,6 @@ if __name__ == "__main__":
     relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
     content_processor = GPTAnswer()
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
-    print(formatted_relevant_docs)
 
     # Measure the time taken to get an answer from the GPT model
     start = time.time()
