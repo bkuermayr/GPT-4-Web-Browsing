@@ -53,7 +53,6 @@ class WebScraper:
             'render_js': 'false',
             'cache': 'true',
             'asp': 'true',
-            'timeout':'10000'
         }
 
         try:
