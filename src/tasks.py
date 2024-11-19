@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import time
 import ssl
+from DatabaseUtil import findValueCustomFields
 
 import grequests
 from fetch_web_content import WebContentFetcher
@@ -38,17 +39,28 @@ if ssl_options:
     )
 
 @celery.task
-def process_query_task(productID,productName,data):
-    query = productName
-    prompt = data.get('prompt', '')
-    output_format = data.get('output_format', "json")
-    profile = data.get('profile', "")
-    search_location = data.get('search_location', "")
-    search_language = data.get('search_language', "")
-    output_language = data.get('output_language', "")
-    job_id = data.get('job_id', "")
-    product_id = productID
-    use_web_search = data.get('use_web_search', True)
+def process_query_task(productData,automationData):
+    query = productData.get('title',"")
+    prompt = automationData.get('prompt', '')
+    output_format = automationData.get('output_format', "json")
+    profile = automationData.get('profile', "")
+    search_location = automationData.get('search_location', "")
+    search_language = automationData.get('search_language', "")
+    output_language = automationData.get('output_language', "")
+    job_id = automationData.get('job_id', "")
+    product_id = productData.get('id',"")
+    use_web_search = automationData.get('use_web_search', True)
+    searchAttr = automationData.get('searchAttributes','')
+    aiAttr = automationData.get('aiAttributes','')
+
+    searchVal = ''
+    aiVal = ''
+    for i in searchAttr:
+        searchVal = f'{searchVal} {findValueCustomFields(productData.get("custom_fields",i))}'
+    for j in aiAttr:
+        aiVal = f'{aiVal} {findValueCustomFields(productData.get("custom_fields",j))}'
+    query = query + searchVal
+    print(query)
     #url = data.get('whitelist',"")
     #temp = ""
     #if len(url) >= 1:
