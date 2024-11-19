@@ -3,7 +3,6 @@ from celery import Celery,group
 from dotenv import load_dotenv
 import os
 import ssl
-from supabase import create_client,Client
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
