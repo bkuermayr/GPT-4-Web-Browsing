@@ -88,15 +88,15 @@ def createDescription():
         automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",job_id).execute().data
         products = client.table('products').select('id,title').in_("id",products_ids).execute().data
         autoData = response.data
-        searchAttributes = ''
-        aiAttributes = ''
+        searchAttributes = []
+        aiAttributes = []
         for x in automationFields:
             if 'category' in x['special_field'].lower() or 'categories' in x['special_field'].lower():
                 continue
             if x['is_search_term']:
-                searchAttributes = f'{searchAttributes} {x['special_field']};'
+                searchAttributes.append(x['special_field'])
             else:
-                aiAttributes = f'{aiAttributes} {x['special_field']};'
+                aiAttributes.append(x['special_field'])
         products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
@@ -121,7 +121,7 @@ def taskGroupStatus(task_id):
     }
     # Ready alles ist fertig wenn True
     # Completee alles ohne Fehler wenn True ?????? was das für statuse
-    return jsonify(task)
+    return jsonify(response)
 
 @app.route('/')
 def hello():

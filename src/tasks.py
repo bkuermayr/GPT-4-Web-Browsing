@@ -50,15 +50,18 @@ def process_query_task(productData,automationData):
     job_id = automationData.get('job_id', "")
     product_id = productData.get('id',"")
     use_web_search = automationData.get('use_web_search', True)
-    searchAttr = automationData.get('searchAttributes','')
-    aiAttr = automationData.get('aiAttributes','')
+    searchAttr = automationData.get('searchAttributes',[])
+    aiAttr = automationData.get('aiAttributes',[])
+    customFields = productData.get('custom_fields',[])
 
-    searchVal = ''
+    searchVal = '' 
     aiVal = ''
     for i in searchAttr:
-        searchVal = f'{searchVal} {findValueCustomFields(productData.get("custom_fields",i))}'
+        temp = findValueCustomFields(customFields,i)
+        searchVal = f'{searchVal} {temp}'
     for j in aiAttr:
-        aiVal = f'{aiVal} {findValueCustomFields(productData.get("custom_fields",j))}'
+        temp = findValueCustomFields(customFields,j)
+        aiVal = f'{aiVal} {temp}'
     query = query + searchVal
     #url = data.get('whitelist',"")
     #temp = ""
