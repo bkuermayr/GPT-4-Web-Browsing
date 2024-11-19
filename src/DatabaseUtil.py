@@ -5,6 +5,14 @@ url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_KEY")
 client = create_client(url,key)
 
+def findValueCustomFields(customFields, name):
+    output = ''
+    for x in customFields:
+        if(x['name'] == name):
+            for y in x['values']:
+                output = f'{output} y'
+    return output
+
 if __name__ == '__main__':
     try:
         products_ids = ['3044187','2784511']
@@ -26,6 +34,6 @@ if __name__ == '__main__':
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
         products = client.table('products').select(f'id,title,custom_fields').in_("id",products_ids).execute().data
-        print(autoData)
+        print(findValueCustomFields(products[0]['custom_fields'],'Marken'))
     except Exception as e:
         print(e)

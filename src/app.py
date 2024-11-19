@@ -89,14 +89,27 @@ def createDescription():
     products_ids = data.get('product_ids',[])
     try:
         response = client.table('automation').select('*').eq("id",job_id).single().execute()
+        automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",job_id).execute().data
         products = client.table('products').select('id,title').in_("id",products_ids).execute().data
         autoData = response.data
+        searchAttributes = ''
+        aiAttributes = ''
+        for x in automationFields:
+            if 'category' in x['special_field'].lower() or 'categories' in x['special_field'].lower():
+                continue
+            if x['is_search_term']:
+                searchAttributes = f'{searchAttributes} {x['special_field']};'
+            else:
+                aiAttributes = f'{aiAttributes} {x['special_field']};'
+        products = client.table('products').select(f'id,title,custom_fields').in_("id",products_ids).execute().data
+        autoData['searchAttributes'] = searchAttributes
+        autoData['aiAttributes'] = aiAttributes 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"Error":True})
     subtasks = []
     for x in products:
-        subtasks.append(process_query_task.s(x['id'],x['title'],jsonify(autoData)))
+        subtasks.append(process_query_task.s(jsonify(products),jsonify(autoData)))
     job = group(subtasks)
     task = job.apply_async()
     task.save()
