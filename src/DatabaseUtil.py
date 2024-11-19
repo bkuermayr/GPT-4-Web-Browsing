@@ -33,12 +33,12 @@ if __name__ == '__main__':
                 aiAttributes.append(x['special_field'])
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
-        products = client.table('products').select(f'id,title,custom_fields').in_("id",products_ids).execute().data
+        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
         searchAttributes.append('Website Größe')
         searchAttributes.append('Farbe DE')
         searchVal = ''
-        for i in searchAttributes:
-            searchVal = f'{searchVal} {findValueCustomFields(products[0].get("custom_fields"),i)}'
-        print(searchVal)
+        #for i in searchAttributes:
+            #searchVal = f'{searchVal} {findValueCustomFields(products.get("custom_fields"),i)}'
+        print(products)
     except Exception as e:
         print(e)

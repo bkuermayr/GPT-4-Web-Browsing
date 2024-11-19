@@ -95,7 +95,7 @@ def createDescription():
                 searchAttributes.append(x['special_field'])
             else:
                 aiAttributes.append(x['special_field'])
-        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).execute().data
+        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
     except Exception as e:
