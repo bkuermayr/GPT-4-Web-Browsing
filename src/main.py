@@ -6,7 +6,7 @@ import time
 import json
 
 if __name__ == "__main__":
-    query = "site:golfhouse.at OR site:golf-for-all.de TaylorMade - Hybrid - Qi10"
+    query = "TaylorMade - Hybrid - Qi10"
     prompt = "Was sind die Produkthighlights vom  TaylorMade - Hybrid - Qi10? Schreibe daraufhin eine Produktbeschreibung"
     output_format = "json" # User can specify output format
     profile = "expert for product data and product description copywriter for a renowned ecommerce company. " # User can define the role for LLM
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, output_language, output_format, profile)
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content + '\n'
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")

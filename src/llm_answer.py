@@ -69,7 +69,6 @@ class GPTAnswer:
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
         gpt_answer = llm([HumanMessage(content=summary_prompt)])
-
         return gpt_answer
 
 # Example usage
