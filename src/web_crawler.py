@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import grequests
+import requests
 import re
 from bs4 import BeautifulSoup
 import os
@@ -35,10 +36,9 @@ class WebScraper:
 
     def get_webpage_html(self, url):
         # Create a HEAD request to fetch headers only
-        req = grequests.head(url)
-
+        response = requests.head(url, headers=self.headers,timeout=10)
+    
         # Send the request and get the response
-        response = grequests.map([req])[0]  # map returns a list of responses
 
         if response:  # Ensure response is not None
             # Check if the Content-Type header indicates HTML content
@@ -53,6 +53,7 @@ class WebScraper:
             'render_js': 'false',
             'cache': 'true',
             'asp': 'true',
+            'timeout':'10000'
         }
 
         try:
@@ -103,6 +104,6 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://ping.com/en-us/clubs/hybrids/g425"
+    test_url = "https://www.adidas.com/us/ultimate365-ottoman-printed-sleeveless-polo-shirt/IP4231.html"
     main_content = scraper.scrape_url(test_url)
     print(main_content)

@@ -86,7 +86,6 @@ def createDescription():
     try:
         response = client.table('automation').select('*').eq("id",job_id).single().execute()
         automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",job_id).execute().data
-        products = client.table('products').select('id,title').in_("id",products_ids).execute().data
         autoData = response.data
         searchAttributes = []
         aiAttributes = []

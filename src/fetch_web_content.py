@@ -17,22 +17,21 @@ class WebContentFetcher:
     def _web_crawler_thread(self, thread_id: int, urls: list):
         # Thread function to crawl each URL*
         try:
-            print(f"Starting web crawler thread {thread_id}")
-            start_time = time.time()
-
+    
             url = urls[thread_id]
+            print(f"Starting web crawler thread {thread_id} with {url}")
+            start_time = time.time()
             scraper = WebScraper()
             content = scraper.scrape_url(url, 0)
+
 
             # If the scraped content is too short, try extending the crawl rules
             if 0 < len(content) < 800:
                 content = scraper.scrape_url(url, 1)
-
             # If the content length is sufficient, add it to the shared list
             if len(content) > 600:
                 with self.web_contents_lock:
                     self.web_contents.append({"url": url, "content": content})
-
             end_time = time.time()
             print(f"Thread {thread_id} completed! Time consumed: {end_time - start_time:.2f}s")
 
