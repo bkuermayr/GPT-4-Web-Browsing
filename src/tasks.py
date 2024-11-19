@@ -60,7 +60,6 @@ def process_query_task(productData,automationData):
     for j in aiAttr:
         aiVal = f'{aiVal} {findValueCustomFields(productData.get("custom_fields",j))}'
     query = query + searchVal
-    print(query)
     #url = data.get('whitelist',"")
     #temp = ""
     #if len(url) >= 1:

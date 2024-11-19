@@ -105,7 +105,7 @@ def createDescription():
         return jsonify({"Error":True})
     subtasks = []
     for x in products:
-        subtasks.append(process_query_task.s(jsonify(products),jsonify(autoData)))
+        subtasks.append(process_query_task.s(x,autoData))
     job = group(subtasks)
     task = job.apply_async()
     task.save()
