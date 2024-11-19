@@ -23,7 +23,9 @@ if __name__ == '__main__':
                 searchAttributes = f'{searchAttributes} {x['special_field']};'
             else:
                 aiAttributes = f'{aiAttributes} {x['special_field']};'
+        autoData['searchAttributes'] = searchAttributes
+        autoData['aiAttributes'] = aiAttributes 
         products = client.table('products').select(f'id,title,custom_fields').in_("id",products_ids).execute().data
-        print(products)
+        print(autoData)
     except Exception as e:
         print(e)
