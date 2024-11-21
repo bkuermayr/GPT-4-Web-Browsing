@@ -6,7 +6,7 @@ import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task, process_csv_feed
+from tasks import process_query_task, process_csv_feed, test
 from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()
@@ -98,6 +98,7 @@ def createDescription():
         products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
+        autoData['job_id']=job_id
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"Error":True})
@@ -120,6 +121,16 @@ def taskGroupStatus(task_id):
     # Ready alles ist fertig wenn True
     # Completee alles ohne Fehler wenn True ?????? was das für statuse
     return jsonify(response)
+
+@app.route('/test/getResult/<task_id>', methods=['GET'])
+def gatherResult(task_id):
+    task = celery.GroupResult.restore(task_id)
+    if(task.ready()):
+        results = task.get()
+        return jsonify(results)
+    else:
+        return jsonify({'done':'false'})
+
 
 @app.route('/')
 def hello():

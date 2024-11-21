@@ -1,4 +1,4 @@
-import json
+import re
 import logging
 from celery import Celery
 from dotenv import load_dotenv
@@ -38,11 +38,13 @@ if ssl_options:
         redis_backend_use_ssl=ssl_options
     )
 
+#on_failure hinzufügen, falls irgendwas passiert
+#on_success hinzfügen wenn fertig um daten zu speichern.
 @celery.task
 def process_query_task(productData,automationData):
     query = productData.get('title',"")
     prompt = automationData.get('prompt', '')
-    output_format = automationData.get('output_format', "json")
+    output_format = automationData.get('output_format', "json_object")
     profile = automationData.get('profile', "")
     search_location = automationData.get('search_location', "")
     search_language = automationData.get('search_language', "")
@@ -93,6 +95,7 @@ def process_query_task(productData,automationData):
                 'gpt_answer_time': 0,
                 'output_language': output_language,
                 'reference_cards': [],
+                'failure' : 'true'
             }
             return response
     else:
@@ -101,50 +104,26 @@ def process_query_task(productData,automationData):
 
     start = time.time()
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
-    answer = ai_message_obj.content + '\n'
+    answer = ai_message_obj.content
+    answer = clean_json_string(answer)
     end = time.time()
 
     logging.info(f'Generated answer in {end - start} seconds')
 
     locator = ReferenceLocator(answer, serper_response)
     reference_cards = locator.locate_source()
-    
-    # Parse the JSON string to a Python dictionary (JSON object)
-    prefix = '```json'
-    suffix = '```'
-    
-    if answer.startswith(prefix) and answer.endswith(suffix):
-        # Remove the prefix and suffix
-        answer_clean = answer[len(prefix):-len(suffix)]
-    else:
-        answer_clean = answer
-    
-    try:
-        answer_json_object = json.loads(answer_clean)
-    except json.JSONDecodeError as e:
-        logging.error(f'JSONDecodeError: {e} for answer: {answer_clean}')
-        answer_json_object = {}
 
     response = {
         'query': query,
         'job_id': job_id,
         'product_id': product_id,
-        'answer': answer_json_object,
+        'answer': answer,
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'reference_cards': reference_cards,
+        'failure' : 'false'
     }
 
-    try:
-        base_url = os.getenv('JOB_SERVER_URL', 'http://localhost:5000')
-        req = grequests.post(f'{base_url}/save-automation-response', json=response)  
-        post_response = grequests.map([req])[0]  
-        if post_response and post_response.status_code == 200:
-            logging.info(f'Posted response to save-automation-response endpoint with status code: {post_response.status_code}')
-        else:
-            logging.error(f'Failed to post response with status code: {post_response.status_code}')
-    except Exception as e:
-        logging.error(f'Failed to post response to save-automation-response endpoint: {e}')
 
     return response
 
@@ -157,3 +136,12 @@ def process_csv_feed(url,remote_directory, filename):
         'status': 'success',
         'message': f'Processed CSV feed from {url} with filename {filename} in directory {remote_directory}'
     }
+
+def clean_json_string(json_string):
+    pattern = r'^```json\s*(.*?)\s*```$'
+    cleaned_string = re.sub(pattern, r'\1', json_string, flags=re.DOTALL)
+    return cleaned_string.strip()
+
+@celery.task
+def test(i):
+    return {'query':' i ü ä ö test'}
