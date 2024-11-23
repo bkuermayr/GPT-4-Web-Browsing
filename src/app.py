@@ -5,6 +5,7 @@ import os
 import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
+import json
 
 from tasks import process_query_task, process_csv_feed
 from DatabaseUtil import client
@@ -122,6 +123,19 @@ def taskGroupStatus(task_id):
     }
     return jsonify(response)
 
+@app.route('/test')
+def test():
+    data = client.table('automation_job_data').select('data').eq('id',676).execute().data
+    for x in data:
+        temp = json.loads(x['data']['answer'])
+        print(temp)
+        for y in temp:
+            print(f'{y} : {temp[y]}')
+            print('\n')
+        print(type(temp['references']))
+        for y in temp['references']:
+            print(type(y))
+    return jsonify({'test':'test'})
 
 @app.route('/')
 def hello():

@@ -8,7 +8,7 @@ import ssl
 from DatabaseUtil import findValueCustomFields, client
 from celery.signals import task_postrun
 
-import grequests
+import json
 from fetch_web_content import WebContentFetcher
 from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
@@ -117,7 +117,7 @@ def process_query_task(productData,automationData):
         'query': query,
         'job_id': job_id,
         'product_id': product_id,
-        'answer': answer,
+        'answer': json.loads(answer),
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'reference_cards': reference_cards,
@@ -134,7 +134,11 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
     product_id = args[0].get('id',"")
     if state=='SUCCESS':
         success = not retval.get('failure',True)
-        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':retval}).execute()
+        data = {
+            'description':retval['answer']['description'],
+            'references':retval['answer']['references']
+            }
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':None,'error':retval}).execute()
 
