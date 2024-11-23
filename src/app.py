@@ -6,7 +6,7 @@ import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task, process_csv_feed, test
+from tasks import process_query_task, process_csv_feed
 from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()
@@ -77,14 +77,15 @@ def trigger_process_csv_feed():
     task = process_csv_feed.apply_async(args=[url, remote_directory, filename])
     return jsonify({"task_id": task.id})
 
-@app.route('/test',methods=['POST'])
+@app.route('/api/createDescription',methods=['POST'])
 def createDescription():
     data = request.get_json() 
     job_id = data.get('job_id','') 
     products_ids = data.get('product_ids',[])
     try:
-        response = client.table('automation').select('*').eq("id",job_id).single().execute()
-        automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",job_id).execute().data
+        automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
+        response = client.table('automation').select('*').eq("id",automationID).single().execute()
+        automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",automationID).execute().data
         autoData = response.data
         searchAttributes = []
         aiAttributes = []
@@ -98,7 +99,8 @@ def createDescription():
         products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
-        autoData['job_id']=job_id
+        autoData['automation_job_id']=job_id
+        autoData['automation_id'] = automationID
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"Error":True})
@@ -111,25 +113,14 @@ def createDescription():
     return jsonify({"task_id": task.id})
 
 
-@app.route('/test/<task_id>', methods=['GET'])
+@app.route('/api/createDescription/<task_id>', methods=['GET'])
 def taskGroupStatus(task_id):
     task = celery.GroupResult.restore(task_id)
     response = {
             'comp_num':task.completed_count(),
             'done':task.ready()
     }
-    # Ready alles ist fertig wenn True
-    # Completee alles ohne Fehler wenn True ?????? was das für statuse
     return jsonify(response)
-
-@app.route('/test/getResult/<task_id>', methods=['GET'])
-def gatherResult(task_id):
-    task = celery.GroupResult.restore(task_id)
-    if(task.ready()):
-        results = task.get()
-        return jsonify(results)
-    else:
-        return jsonify({'done':'false'})
 
 
 @app.route('/')

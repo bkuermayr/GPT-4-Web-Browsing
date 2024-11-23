@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import os
 import time
 import ssl
-from DatabaseUtil import findValueCustomFields
+from DatabaseUtil import findValueCustomFields, client
+from celery.signals import task_postrun
 
 import grequests
 from fetch_web_content import WebContentFetcher
@@ -38,8 +39,7 @@ if ssl_options:
         redis_backend_use_ssl=ssl_options
     )
 
-#on_failure hinzufügen, falls irgendwas passiert
-#on_success hinzfügen wenn fertig um daten zu speichern.
+
 @celery.task
 def process_query_task(productData,automationData):
     query = productData.get('title',"")
@@ -49,7 +49,7 @@ def process_query_task(productData,automationData):
     search_location = automationData.get('search_location', "")
     search_language = automationData.get('search_language', "")
     output_language = automationData.get('output_language', "")
-    job_id = automationData.get('job_id', "")
+    job_id = automationData.get('automation_job_id', "")
     product_id = productData.get('id',"")
     use_web_search = automationData.get('use_web_search', True)
     searchAttr = automationData.get('searchAttributes',[])
@@ -95,7 +95,7 @@ def process_query_task(productData,automationData):
                 'gpt_answer_time': 0,
                 'output_language': output_language,
                 'reference_cards': [],
-                'failure' : 'true'
+                'failure' : True
             }
             return response
     else:
@@ -121,11 +121,24 @@ def process_query_task(productData,automationData):
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'reference_cards': reference_cards,
-        'failure' : 'false'
+        'failure' : False
     }
 
 
     return response
+
+
+@task_postrun.connect(sender=process_query_task)
+def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
+    aID = args[1].get('automation_job_id')
+    product_id = args[0].get('id',"")
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':retval}).execute()
+    else:
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':None,'error':retval}).execute()
+
+
 
 
 @celery.task

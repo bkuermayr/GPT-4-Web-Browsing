@@ -9,9 +9,7 @@ template: |
       [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
           Quoted sentence: Tencent accounted for roughly 50% of domestic market revenue for the quarter, compared to 40% in Q1 2022.
   Perform the following steps after you are done with writing the description and the citation list
-  Evalute if the web search results, that were provided for you, are empty or if there weren't any. They are empty if the length of the string of them is 10 or less. if that case happens, add point1=true to the output.
-  Evaluate if the web search results input was enough for you or if you had to fall back on other web sources. IF you used other Web sourcen, add point2 = true to the output
-  Verify that all references that you have written to the output, that the URL from each Element of the references List match at least one in the web search result. For it to be considered matching it has to be equal (identical). here is an example for you https://www.test.com/Holster and https://www.test.com/Holster are equal but https://www.test.com/test and https://www.test.com/Holster do not match. if you find one case add point3= true to the output.
+  Verify that all references that you have written to the output, that the URL from each Element of the references List match at least one in the web search result. For it to be considered matching it has to be equal (identical). here is an example for you https://www.test.com/Holster and https://www.test.com/Holster are equal but https://www.test.com/test and https://www.test.com/Holster do not match. if you find one case add notMatching= true to the output.
 
   Answer in language: {language}
   Query: {query}
