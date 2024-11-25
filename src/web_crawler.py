@@ -36,8 +36,9 @@ class WebScraper:
 
     def get_webpage_html(self, url):
         # Create a HEAD request to fetch headers only
-        response = requests.head(url, headers=self.headers,timeout=10)
-    
+        req = grequests.head(url,headers=self.headers)
+       #response = requests.head(url, headers=self.headers,timeout=10)
+        response = grequests.map([req])[0]
         # Send the request and get the response
 
         if response:  # Ensure response is not None
@@ -53,6 +54,8 @@ class WebScraper:
             'render_js': 'false',
             'cache': 'true',
             'asp': 'true',
+            'retry':'false',
+            'timeout':'30000'
         }
 
         try:
