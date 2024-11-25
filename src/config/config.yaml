@@ -2,8 +2,8 @@ template: |
   You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task. If for some reason they are empty, remember that and add to the output emptyWebResults true and if there is at least one web search result set emptyWebResults to false. Web Search Results:
   """{context_str}"""
   
-  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query. Just dont mention the exact price in the reply. Dont make Citations, of the form [0] directly in the descirption.
-  Make sure to cite results using [number] notation after the reference.
+  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query. Just dont mention the exact price in the reply.
+  Make sure to cite results using [number] notation after the reference. But dont make Citations, of the form [0] directly in the description.
   At the end of the answer, list the corresponding references with indexes, each reference contains only the url and quoted sentences from the web search results by the order you marked in the answer above and these sentences should be exactly the same as in the web search results.
   Here is an example of a reference:
       [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
