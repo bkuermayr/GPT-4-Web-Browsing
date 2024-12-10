@@ -25,7 +25,7 @@ class WebContentFetcher:
             content = scraper.scrape_url(url, 0)
 
             if not content:
-                raise Exception("Timeout")
+                raise Exception(f"No content found for url: {url}")
             # If the scraped content is too short, try extending the crawl rules
             if 0 < len(content) < 800:
                 content = scraper.scrape_url(url, 1)

@@ -32,18 +32,21 @@ class GPTAnswer:
             reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
             rearranged_index_list = self._rearrange_index(reference_index_list)
             #if len(set(reference_index_list)) <= 3:
-                #return ""
+                #return None
             formatted_reference = "\n"
+            k = 0
             for i in range(num_docs):
-                if len(reference_content_list[i]) <= 600:
+                #Die Zeile überdenken
+                if len(reference_content_list[i]) <= 200:
                     print("Bad source")
+                    k += 1
                 else:
                     formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
             return formatted_reference
 
         except Exception as e:
             print("Exception while formatting reference: ", e)
-            return ""
+            return None
 
 
     def _rearrange_index(self, original_index_list):

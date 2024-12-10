@@ -94,22 +94,16 @@ def process_query_task(productData,automationData):
                 'failure' : True,
                 'reason': 'Not enough sources'
             }
-            f = open(f"demofile{product_id}.txt", "w")
-            f.write(f'\n {response.__str__()}')
-            f.close()
             return response
-        '''f = open(f"demofile{product_id}.txt", "w")
-        f.write(f'Quellen Anzahl davor: {len(web_contents)} und {len(serper_response['links'])}\n')
-        f.close() '''
         relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id)
-        '''f = open(f"demofile{product_id}.txt", "a")
+        '''f = open(f"demofile{product_id}.txt", "w")
         f.write(f'{relevant_docs_list.__str__()}')
-        f.close() '''
+        f.close()'''
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
         if not formatted_relevant_docs:
             response = {
                 'query': query,
-                'job_id': job_id,
+                'job_id': job_id,   
                 'product_id': product_id,
                 'answer': {},
                 'gpt_answer_time': 0,
@@ -118,9 +112,6 @@ def process_query_task(productData,automationData):
                 'failure' : True,
                 'reason': 'Not enough sources'
             }
-            '''f = open(f"demofile{product_id}.txt", "a")
-            f.write(f'\n {response.__str__()}')
-            f.close()'''
             return response
     else:
         formatted_relevant_docs = None
@@ -147,9 +138,9 @@ def process_query_task(productData,automationData):
         'failure' : False
     }
 
-    f = open(f"demofile{product_id}.txt", "a")
+    '''f = open(f"demofile{product_id}.txt", "w")
     f.write(f'\n {response.__str__()}')
-    f.close()
+    f.close()'''
 
 
     return response

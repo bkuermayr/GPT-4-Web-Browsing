@@ -26,14 +26,14 @@ class EmbeddingRetriever:
             if contents_list[i]:
                 processed_contents.append(contents_list[i])
                 l.append(link_list[i])
-        '''f = open(f"demofile{id}.txt", "a")
+        '''f = open(f"demofile{id}.txt", "w")
         f.write(f'{processed_contents.__str__()} \n')
-        f.close() 
+        f.close() '''
         if len(processed_contents) <= 3:
-            f = open(f"demofile{id}.txt", "a")
+            '''f = open(f"demofile{id}.txt", "a")
             f.write(f'{"Sehr wenig\n"}')
-            f.close() 
-            return []'''
+            f.close()''' 
+            return []
         #Create metadata and prepare documents for Chroma
         metadatas = [{'url': link} for link in l]
         texts = self.text_splitter.create_documents(processed_contents, metadatas=metadatas)
