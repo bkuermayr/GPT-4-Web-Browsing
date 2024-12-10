@@ -31,10 +31,14 @@ class GPTAnswer:
             reference_content_list = [relevant_docs_list[i].page_content for i in range(num_docs)]
             reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
             rearranged_index_list = self._rearrange_index(reference_index_list)
-
+            #if len(set(reference_index_list)) <= 3:
+                #return ""
             formatted_reference = "\n"
             for i in range(num_docs):
-                formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
+                if len(reference_content_list[i]) <= 600:
+                    print("Bad source")
+                else:
+                    formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
             return formatted_reference
 
         except Exception as e:
@@ -68,14 +72,13 @@ class GPTAnswer:
         summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
-        #print(summary_prompt)
         gpt_answer = llm([HumanMessage(content=summary_prompt)])
         return gpt_answer
 
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "What happened to Silicon Valley Bank"
+    query = "Fleece 1/4-Zip Pullovers"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 

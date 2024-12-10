@@ -1,17 +1,18 @@
 from dotenv import load_dotenv
 import grequests
-import requests
-import re
 from bs4 import BeautifulSoup
 import os
-
+from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse
 # Load .env file
 load_dotenv()
 
 class WebScraper:
+
+
     def __init__(self, user_agent='macOS'):
         # Initialize the scraper with a user agent (default is 'macOS')
         self.headers = self._get_headers(user_agent)
+        self.scrapfly = ScrapflyClient(key=os.getenv('SCRAPFLY_API_KEY'))
 
     def _get_headers(self, user_agent):
         # Private method to get headers for the request based on the specified user agent
@@ -35,40 +36,36 @@ class WebScraper:
             }
 
     def get_webpage_html(self, url):
-        # Create a HEAD request to fetch headers only
-        req = grequests.head(url,headers=self.headers)
-       #response = requests.head(url, headers=self.headers,timeout=10)
+        req = grequests.head(url,headers=self.headers, timeout = 10)
+        #response = requests.head(url, headers=self.headers,timeout=(10,20))
         response = grequests.map([req])[0]
-        # Send the request and get the response
+        #Send the request and get the response
 
         if response:  # Ensure response is not None
-            # Check if the Content-Type header indicates HTML content
-            if not response.headers.get('Content-Type', '').startswith('text/html'):
-                # Skip non-HTML content
+                # Check if the Content-Type header indicates HTML content
+            if not response or  not response.headers.get('Content-Type', '').startswith('text/html'):
+                    # Skip non-HTML content
                 return None
-            
-        request_url = 'https://api.scrapfly.io/scrape'
-        params = {
-            'key': os.getenv('SCRAPFLY_API_KEY'),
-            'url': url,
-            'render_js': 'false',
-            'cache': 'true',
-            'asp': 'true',
-            'retry':'false',
-            'timeout':'30000'
-        }
-
+        else:
+            return None
         try:
-            req = grequests.get(
-                request_url,
-                params=params,
-                headers=self.headers,
-            )
+            # Create a HEAD request to fetch headers only
+        #request_url = 'https://api.scrapfly.io/scrape'
+        #params = {
+        #    'key': os.getenv('SCRAPFLY_API_KEY'),
+        #    'url': url,
+        #    'render_js': 'false',
+        #    'cache': 'true',
+        #    'asp': 'true',
+        #    'retry':'false',
+        #    'timeout':'30000'
+        #}
+            conf = ScrapeConfig(asp=True,render_js=False,
+                         url=url, retry=False, timeout=30000)
 
-            response = grequests.map([req])[0]
-
-            if response and response.status_code == 200:
-                return response
+            response = self.scrapfly.scrape(scrape_config=conf)
+            if response and response.success:
+                return response.scrape_result['content']
             else:
                 raise Exception(f'Request failed with status {response.status_code}')  
 
@@ -79,33 +76,33 @@ class WebScraper:
     def convert_html_to_soup(self, html):
         # Convert the HTML string to a BeautifulSoup object for parsing
         if html:
-            html_string = html.text
+            html_string = html
             return BeautifulSoup(html_string, "lxml")
         return None
 
-    def extract_main_content(self, html_soup, rule=0):
+    def extract_main_content(self, html_soup,rule=0):
         # Extract the main content from a BeautifulSoup object
-        main_content = []
-        tag_rule = re.compile("^(h[1-6]|p|div)" if rule == 1 else "^(h[1-6]|p)")
+        text_elements = []
+        allowlist = ['p','span','li','h1','h2','h3','h4','h5','h6']
+        if rule==1:
+            allowlist.append('div') 
         # Iterate through specified tags and collect their text
         if html_soup:
-            for tag in html_soup.find_all(tag_rule):
-                tag_text = tag.get_text().strip()
-                if tag_text and len(tag_text.split()) > 10:
-                    main_content.append(tag_text)
-        return "\n".join(main_content).strip()
+            text_elements = [t for t in html_soup.find_all(text=True) if t.parent.name in allowlist and t.strip()]
+        return "\n".join(text_elements).strip()
 
     def scrape_url(self, url, rule=0):
         # Public method to scrape a URL and extract its main content
         webpage_html = self.get_webpage_html(url)
+        if not webpage_html:
+            return None
         soup = self.convert_html_to_soup(webpage_html)
-        main_content = self.extract_main_content(soup, rule)
+        main_content = self.extract_main_content(soup,rule)
         return main_content
     
 
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://www.adidas.com/us/ultimate365-ottoman-printed-sleeveless-polo-shirt/IP4231.html"
+    test_url = "https://railroads.dot.gov/sites/fra.dot.gov/files/fra_net/16031/1980_MEASUREMENT%20OF%20WHEEL%20RAIL%20FORCES%20AT%20THE%20WASHINGTON.PDF"
     main_content = scraper.scrape_url(test_url)
-    print(main_content)

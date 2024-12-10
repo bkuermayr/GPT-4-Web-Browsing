@@ -40,7 +40,6 @@ class SerperClient:
         # Perform the POST request to the Serper API
         req = grequests.post(self.url, headers=self.headers, data=payload)
         response = grequests.map([req])[0]
-
         if response and response.status_code == 200:
             return response.json()
         else:

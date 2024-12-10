@@ -6,8 +6,8 @@ import time
 import json
 
 if __name__ == "__main__":
-    query = "site:nothing.com TaylorMade - Hybrid - Qi10"
-    prompt = "Was sind die Produkthighlights vom  TaylorMade - Hybrid - Qi10? Schreibe daraufhin eine Produktbeschreibung"
+    query = "1/4 Zip Fleece Pulover"
+    prompt = "Was sind die Produkthighlights vom 1/4 Zip Fleece Pulover? Schreibe daraufhin eine Produktbeschreibung"
     output_format = "json" # User can specify output format
     profile = "expert for product data and product description copywriter for a renowned ecommerce company. " # User can define the role for LLM
     output_language = "de-de"

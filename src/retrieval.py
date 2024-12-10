@@ -15,22 +15,35 @@ class EmbeddingRetriever:
         # Initialize the text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
-    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str):
+    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str = 0):
         if len(contents_list) != len(link_list):
             raise ValueError("contents_list and link_list must have the same length")
 
         # Pre-process contents to ensure they are suitable for splitting and embedding
-        processed_contents = [content if content and len(content) >= 50 else "No content available." for content in contents_list]
-
-        # Create metadata and prepare documents for Chroma
-        metadatas = [{'url': link} for link in link_list]
+        processed_contents = []
+        l = []
+        for i in range(0,len(contents_list)):
+            if contents_list[i]:
+                processed_contents.append(contents_list[i])
+                l.append(link_list[i])
+        '''f = open(f"demofile{id}.txt", "a")
+        f.write(f'{processed_contents.__str__()} \n')
+        f.close() 
+        if len(processed_contents) <= 3:
+            f = open(f"demofile{id}.txt", "a")
+            f.write(f'{"Sehr wenig\n"}')
+            f.close() 
+            return []'''
+        #Create metadata and prepare documents for Chroma
+        metadatas = [{'url': link} for link in l]
         texts = self.text_splitter.create_documents(processed_contents, metadatas=metadatas)
 
         # Safely initialize and populate Chroma database
         try:
             db = Chroma.from_documents(
                 texts,
-                OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY"))
+                OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
+                collection_name=f"{id}"
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
             return retriever.get_relevant_documents(query)
@@ -40,7 +53,7 @@ class EmbeddingRetriever:
 
 # Example usage
 if __name__ == "__main__":
-    query = "What happened to Silicon Valley Bank"
+    query = "Fleece 1/4-Zip Pullovers"
 
     # Create a WebContentFetcher instance and fetch web contents
     web_contents_fetcher = WebContentFetcher(query)
@@ -49,6 +62,8 @@ if __name__ == "__main__":
     # Create an EmbeddingRetriever instance and retrieve relevant documents
     retriever = EmbeddingRetriever()
     relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
-
-    print("\n\nRelevant Documents from VectorDB:\n", relevant_docs_list)
-    
+    print(f"\n\nRelevant Documents from VectorDB: {relevant_docs_list} \n")    
+    f = open(f"demofile5.txt", "a")
+    for l in relevant_docs_list:
+        f.write(l.__str__())
+    f.close()

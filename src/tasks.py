@@ -82,10 +82,30 @@ def process_query_task(productData,automationData):
         web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language, output_language=output_language)
         web_contents, serper_response = web_contents_fetcher.fetch()
         retriever = EmbeddingRetriever()
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+        if serper_response is None:
+            response = {
+                'query': query,
+                'job_id': job_id,
+                'product_id': product_id,
+                'answer': {},
+                'gpt_answer_time': 0,
+                'output_language': output_language,
+                'reference_cards': [],
+                'failure' : True,
+                'reason': 'Not enough sources'
+            }
+            f = open(f"demofile{product_id}.txt", "w")
+            f.write(f'\n {response.__str__()}')
+            f.close()
+            return response
+        '''f = open(f"demofile{product_id}.txt", "w")
+        f.write(f'Quellen Anzahl davor: {len(web_contents)} und {len(serper_response['links'])}\n')
+        f.close() '''
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id)
+        '''f = open(f"demofile{product_id}.txt", "a")
+        f.write(f'{relevant_docs_list.__str__()}')
+        f.close() '''
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
-
-        # if no urls are found, return json response with empty answer
         if not formatted_relevant_docs:
             response = {
                 'query': query,
@@ -95,13 +115,16 @@ def process_query_task(productData,automationData):
                 'gpt_answer_time': 0,
                 'output_language': output_language,
                 'reference_cards': [],
-                'failure' : True
+                'failure' : True,
+                'reason': 'Not enough sources'
             }
+            '''f = open(f"demofile{product_id}.txt", "a")
+            f.write(f'\n {response.__str__()}')
+            f.close()'''
             return response
     else:
         formatted_relevant_docs = None
         serper_response = None
-
     start = time.time()
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
     answer = ai_message_obj.content
@@ -124,11 +147,15 @@ def process_query_task(productData,automationData):
         'failure' : False
     }
 
+    f = open(f"demofile{product_id}.txt", "a")
+    f.write(f'\n {response.__str__()}')
+    f.close()
+
 
     return response
 
 
-@task_postrun.connect(sender=process_query_task)
+#@task_postrun.connect(sender=process_query_task)
 def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
     aID = args[1].get('automation_job_id')
     product_id = args[0].get('id',"")

@@ -24,7 +24,8 @@ class WebContentFetcher:
             scraper = WebScraper()
             content = scraper.scrape_url(url, 0)
 
-
+            if not content:
+                raise Exception("Timeout")
             # If the scraped content is too short, try extending the crawl rules
             if 0 < len(content) < 800:
                 content = scraper.scrape_url(url, 1)
@@ -34,7 +35,6 @@ class WebContentFetcher:
                     self.web_contents.append({"url": url, "content": content})
             end_time = time.time()
             print(f"Thread {thread_id} completed! Time consumed: {end_time - start_time:.2f}s")
-
         except Exception as e:
             # Handle any exceptions, log the error, and store the URL
             with self.error_urls_lock:
@@ -64,6 +64,8 @@ class WebContentFetcher:
         if serper_response:
             print(f"Fetching web content for query: {self.query}")
             url_list = serper_response["links"]
+            if len(url_list) <= 3:
+                return [], None
             print(f"Found {len(url_list)} URLs from the search results")
             self._crawl_threads_launcher(url_list)
             # Reorder the fetched content to match the order of URLs
@@ -71,14 +73,19 @@ class WebContentFetcher:
                 next((item['content'] for item in self.web_contents if item['url'] == url), '') 
                 for url in url_list
             ]
+            i = 0
+            for l in ordered_contents:
+                if not l or l.strip() == '':
+                    i += 1
+            if i>=7:
+                return [], None
             return ordered_contents, serper_response
         return [], None
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("What happened to Silicon Valley Bank")
+    fetcher = WebContentFetcher("505U Premium HE RH #3 S (GDI IZ 95)")
     contents, serper_response = fetcher.fetch()
 
-    print(serper_response)
-    print(contents, '\n\n')
+    print(contents)
     
