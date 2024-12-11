@@ -1,6 +1,6 @@
 import re
 import logging
-from celery import Celery
+from celery import Celery, group
 from dotenv import load_dotenv
 import os
 import time
@@ -92,7 +92,7 @@ def process_query_task(productData,automationData):
                 'output_language': output_language,
                 'reference_cards': [],
                 'failure' : True,
-                'reason': 'Not enough sources'
+                'reason': 'Not enough quality sources'
             }
             return response
         relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id)
@@ -110,7 +110,7 @@ def process_query_task(productData,automationData):
                 'output_language': output_language,
                 'reference_cards': [],
                 'failure' : True,
-                'reason': 'Not enough sources'
+                'reason': 'Not enough quality sources'
             }
             return response
     else:
@@ -146,7 +146,7 @@ def process_query_task(productData,automationData):
     return response
 
 
-#@task_postrun.connect(sender=process_query_task)
+@task_postrun.connect(sender=process_query_task)
 def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
     aID = args[1].get('automation_job_id')
     product_id = args[0].get('id',"")
@@ -154,8 +154,11 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
         success = not retval.get('failure',True)
         data = {
             'description':retval['answer']['description'],
-            'references':retval['answer']['references']
+            'references':retval['answer']['references'],
+            'failureReason': ""
             }
+        if success == False:
+            data['failureReason'] = retval['reason']
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':None,'error':retval}).execute()
@@ -177,6 +180,17 @@ def clean_json_string(json_string):
     cleaned_string = re.sub(pattern, r'\1', json_string, flags=re.DOTALL)
     return cleaned_string.strip()
 
+
 @celery.task
-def test(i):
-    return {'query':' i ü ä ö test'}
+def test2(query):
+    web_contents_fetcher = WebContentFetcher(query=query, search_location='Vienna, Austria')
+    web_contents, serper_response, count = web_contents_fetcher.fetch()
+    return {'count':count,'query':query}
+
+if __name__ == "__main__":
+    subtasks = []
+    products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
+    for x in products:
+        subtasks.append(test2.s(x))
+    job = group(subtasks)
+    task = job.apply_async()

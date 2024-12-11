@@ -7,7 +7,7 @@ from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 import json
 
-from tasks import process_query_task, process_csv_feed
+from tasks import process_query_task, process_csv_feed, test2
 from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()
@@ -123,19 +123,16 @@ def taskGroupStatus(task_id):
     }
     return jsonify(response)
 
+'''
 @app.route('/test')
 def test():
-    data = client.table('automation_job_data').select('data').eq('id',676).execute().data
-    for x in data:
-        temp = json.loads(x['data']['answer'])
-        print(temp)
-        for y in temp:
-            print(f'{y} : {temp[y]}')
-            print('\n')
-        print(type(temp['references']))
-        for y in temp['references']:
-            print(type(y))
-    return jsonify({'test':'test'})
+    subtasks = []
+    products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo', '1/4 Zip Fleece Pulover Rot', '1/4 Zip Fleece Pulover blau','adidas 2023 Season Opener Cap Womens','Callaway Warbird Herren Golfset','Wilson Stretch XL Komplettsatz']
+    for x in products:
+        subtasks.append(test2.s(x))
+    job = group(subtasks)
+    task = job.apply_async()
+    return jsonify({'test':'test'})'''
 
 @app.route('/')
 def hello():

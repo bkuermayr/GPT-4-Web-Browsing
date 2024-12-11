@@ -13,6 +13,7 @@ class WebContentFetcher:
         self.error_urls_lock = threading.Lock()  # Lock for thread-safe operations on error_urls
         self.search_location = search_location
         self.search_language = search_language
+        #self.test = 0
 
     def _web_crawler_thread(self, thread_id: int, urls: list):
         # Thread function to crawl each URL*
@@ -40,6 +41,7 @@ class WebContentFetcher:
             with self.error_urls_lock:
                 self.error_urls.append(url)
             print(f"Thread {thread_id}: Error crawling {url}: {e}")
+            #self.test += 1
 
     def _serper_launcher(self):
         # Function to launch the Serper client and get search results
@@ -78,14 +80,14 @@ class WebContentFetcher:
                 if not l or l.strip() == '':
                     i += 1
             if i>=7:
-                return [], None
-            return ordered_contents, serper_response
-        return [], None
+                return [], None#, self.test
+            return ordered_contents, serper_response#, self.test
+        return [], None#, self.test
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("505U Premium HE RH #3 S (GDI IZ 95)")
-    contents, serper_response = fetcher.fetch()
+    fetcher = WebContentFetcher("2024 Adidas Season Opener Kappe")
+    contents, serper_response,count = fetcher.fetch()
 
-    print(contents)
+    print(f"Count: {count}")
     
