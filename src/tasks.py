@@ -153,12 +153,15 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
     if state=='SUCCESS':
         success = not retval.get('failure',True)
         data = {
-            'description':retval['answer']['description'],
-            'references':retval['answer']['references'],
+            'description':"",
+            'references':"",
             'failureReason': ""
             }
         if success == False:
             data['failureReason'] = retval['reason']
+        else:
+            data['description'] = retval['answer']['description']
+            data['references'] = retval['answer']['references']
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':None,'error':retval}).execute()
