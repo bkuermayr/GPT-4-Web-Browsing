@@ -31,15 +31,22 @@ class GPTAnswer:
             reference_content_list = [relevant_docs_list[i].page_content for i in range(num_docs)]
             reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
             rearranged_index_list = self._rearrange_index(reference_index_list)
-
+            #if len(set(reference_index_list)) <= 3:
+                #return None
             formatted_reference = "\n"
+            k = 0
             for i in range(num_docs):
-                formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
+                #Die Zeile überdenken
+                if len(reference_content_list[i]) <= 200:
+                    print("Bad source")
+                    k += 1
+                else:
+                    formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
             return formatted_reference
 
         except Exception as e:
             print("Exception while formatting reference: ", e)
-            return ""
+            return None
 
 
     def _rearrange_index(self, original_index_list):
@@ -69,13 +76,12 @@ class GPTAnswer:
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
         gpt_answer = llm([HumanMessage(content=summary_prompt)])
-
         return gpt_answer
 
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "What happened to Silicon Valley Bank"
+    query = "Fleece 1/4-Zip Pullovers"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 

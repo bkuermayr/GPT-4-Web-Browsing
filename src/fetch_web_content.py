@@ -13,34 +13,35 @@ class WebContentFetcher:
         self.error_urls_lock = threading.Lock()  # Lock for thread-safe operations on error_urls
         self.search_location = search_location
         self.search_language = search_language
+        #self.test = 0
 
     def _web_crawler_thread(self, thread_id: int, urls: list):
         # Thread function to crawl each URL*
         try:
-            print(f"Starting web crawler thread {thread_id}")
-            start_time = time.time()
-
+    
             url = urls[thread_id]
+            print(f"Starting web crawler thread {thread_id} with {url}")
+            start_time = time.time()
             scraper = WebScraper()
             content = scraper.scrape_url(url, 0)
 
+            if not content:
+                raise Exception(f"No content found for url: {url}")
             # If the scraped content is too short, try extending the crawl rules
             if 0 < len(content) < 800:
                 content = scraper.scrape_url(url, 1)
-
             # If the content length is sufficient, add it to the shared list
             if len(content) > 600:
                 with self.web_contents_lock:
                     self.web_contents.append({"url": url, "content": content})
-
             end_time = time.time()
             print(f"Thread {thread_id} completed! Time consumed: {end_time - start_time:.2f}s")
-
         except Exception as e:
             # Handle any exceptions, log the error, and store the URL
             with self.error_urls_lock:
                 self.error_urls.append(url)
             print(f"Thread {thread_id}: Error crawling {url}: {e}")
+            #self.test += 1
 
     def _serper_launcher(self):
         # Function to launch the Serper client and get search results
@@ -65,6 +66,8 @@ class WebContentFetcher:
         if serper_response:
             print(f"Fetching web content for query: {self.query}")
             url_list = serper_response["links"]
+            if len(url_list) <= 3:
+                return [], None
             print(f"Found {len(url_list)} URLs from the search results")
             self._crawl_threads_launcher(url_list)
             # Reorder the fetched content to match the order of URLs
@@ -72,14 +75,19 @@ class WebContentFetcher:
                 next((item['content'] for item in self.web_contents if item['url'] == url), '') 
                 for url in url_list
             ]
-            return ordered_contents, serper_response
-        return [], None
+            i = 0
+            for l in ordered_contents:
+                if not l or l.strip() == '':
+                    i += 1
+            if i>=7:
+                return [], None#, self.test
+            return ordered_contents, serper_response#, self.test
+        return [], None#, self.test
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("What happened to Silicon Valley Bank")
-    contents, serper_response = fetcher.fetch()
+    fetcher = WebContentFetcher("2024 Adidas Season Opener Kappe")
+    contents, serper_response,count = fetcher.fetch()
 
-    print(serper_response)
-    print(contents, '\n\n')
+    print(f"Count: {count}")
     

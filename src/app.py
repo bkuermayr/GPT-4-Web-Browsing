@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify
-from celery import Celery
+from celery import Celery,group
 from dotenv import load_dotenv
 import os
 import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
+import json
 
-from tasks import process_query_task, process_csv_feed
-
+from tasks import process_query_task, process_csv_feed, test2
+from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()
 
@@ -76,6 +77,62 @@ def trigger_process_csv_feed():
     remote_directory = request.args.get('remote_directory')
     task = process_csv_feed.apply_async(args=[url, remote_directory, filename])
     return jsonify({"task_id": task.id})
+
+@app.route('/api/createDescription',methods=['POST'])
+def createDescription():
+    data = request.get_json() 
+    job_id = data.get('job_id','') 
+    products_ids = data.get('product_ids',[])
+    try:
+        automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
+        response = client.table('automation').select('*').eq("id",automationID).single().execute()
+        automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",automationID).execute().data
+        autoData = response.data
+        searchAttributes = []
+        aiAttributes = []
+        for x in automationFields:
+            if 'category' in x['special_field'].lower() or 'categories' in x['special_field'].lower():
+                continue
+            if x['is_search_term']:
+                searchAttributes.append(x['special_field'])
+            else:
+                aiAttributes.append(x['special_field'])
+        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
+        autoData['searchAttributes'] = searchAttributes
+        autoData['aiAttributes'] = aiAttributes 
+        autoData['automation_job_id']=job_id
+        autoData['automation_id'] = automationID
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"Error":True})
+    subtasks = []
+    for x in products:
+        subtasks.append(process_query_task.s(x,autoData))
+    job = group(subtasks)
+    task = job.apply_async()
+    task.save()
+    return jsonify({"task_id": task.id})
+
+
+@app.route('/api/createDescription/<task_id>', methods=['GET'])
+def taskGroupStatus(task_id):
+    task = celery.GroupResult.restore(task_id)
+    response = {
+            'comp_num':task.completed_count(),
+            'done':task.ready()
+    }
+    return jsonify(response)
+
+'''
+@app.route('/test')
+def test():
+    subtasks = []
+    products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo', '1/4 Zip Fleece Pulover Rot', '1/4 Zip Fleece Pulover blau','adidas 2023 Season Opener Cap Womens','Callaway Warbird Herren Golfset','Wilson Stretch XL Komplettsatz']
+    for x in products:
+        subtasks.append(test2.s(x))
+    job = group(subtasks)
+    task = job.apply_async()
+    return jsonify({'test':'test'})'''
 
 @app.route('/')
 def hello():
