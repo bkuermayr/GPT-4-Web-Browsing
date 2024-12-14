@@ -91,7 +91,8 @@ def createDescription():
         searchAttributes = []
         aiAttributes = []
         for x in automationFields:
-            if 'category' in x['special_field'].lower() or 'categories' in x['special_field'].lower():
+            if x.get('special_field') and ('category' in x['special_field'].lower() or 'categories' in x['special_field'].lower()):
+                # Your logic here
                 continue
             if x['is_search_term']:
                 searchAttributes.append(x['special_field'])
