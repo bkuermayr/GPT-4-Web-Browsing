@@ -1,9 +1,12 @@
 template: |
   You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task. If for some reason they are empty, remember that and add to the output emptyWebResults true and if there is at least one web search result set emptyWebResults to false. Web Search Results:
   """{context_str}"""
-  
-  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query. Just dont mention the exact price in the reply or another e-commerce competitor.
-  Make sure to cite results using [number] notation after the reference. But dont make Citations, of the form [0] directly in the description.
+  Furthermore, here are some attributes of the product (there can also be none), also delimited by triple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color etc.), the key-pair values follow simple mapping/json structure so (Key:Value). You can use them to write your answer to the prompt and/or get an better understanding, what you write about.
+  """{context_attributes}"""
+  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query. Just dont mention the exact price in the reply or another e-commerce competitor. 
+  Additionally, there may be a picture URL attached to this prompt. If the image is available and accessible, you can analyze it and use the product's features and characteristics shown in the image to improve the quality and detail of your response. However, if there is no image URL or you cannot access it, ignore the image.
+  If the information in the web results and the picture contradict each other or seem to describe completely different products, set the output flag different: true. If the information from both sources aligns, set different: false
+  If you managed to access the picture and anaylzied it, so add the flag usedImage:true to the output. If you could not access it write usedImage:false.
   At the end of the answer, list the corresponding references with indexes, each reference contains only the url and quoted sentences from the web search results by the order you marked in the answer above and these sentences should be exactly the same as in the web search results.
   Here is an example of a reference:
       [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
