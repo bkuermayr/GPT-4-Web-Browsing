@@ -44,10 +44,10 @@ class WebScraper:
         if response:  # Ensure response is not None
                 # Check if the Content-Type header indicates HTML content
             if not response or  not response.headers.get('Content-Type', '').startswith('text/html'):
-                    # Skip non-HTML content
-                return None
+                # Skip non-HTML content
+                raise Exception('Non HTML Content')
         else:
-            return None
+            raise Exception(f'Access Forbidden')
         try:
             # Create a HEAD request to fetch headers only
         #request_url = 'https://api.scrapfly.io/scrape'
@@ -104,5 +104,6 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://railroads.dot.gov/sites/fra.dot.gov/files/fra_net/16031/1980_MEASUREMENT%20OF%20WHEEL%20RAIL%20FORCES%20AT%20THE%20WASHINGTON.PDF"
+    test_url = "https://www.puetzgolf.com/24-ai-one-mld-8-t-s-putter-24-ai-one-mld-8-t-s-putter"
     main_content = scraper.scrape_url(test_url)
+    print(main_content)

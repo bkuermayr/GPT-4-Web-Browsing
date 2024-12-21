@@ -86,7 +86,7 @@ class WebContentFetcher:
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("2021 DS 72 Putter")
+    fetcher = WebContentFetcher("Ai-One Milled Eight T S Putter")
     contents, serper_response = fetcher.fetch()
 
     
