@@ -86,8 +86,7 @@ class WebContentFetcher:
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("2024 Adidas Season Opener Kappe")
-    contents, serper_response,count = fetcher.fetch()
+    fetcher = WebContentFetcher("2021 DS 72 Putter")
+    contents, serper_response = fetcher.fetch()
 
-    print(f"Count: {count}")
     
