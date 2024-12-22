@@ -148,7 +148,7 @@ def process_query_task(productData,automationData):
     return response
 
 
-@task_postrun.connect(sender=process_query_task)
+#@task_postrun.connect(sender=process_query_task)
 def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
     print('Postrun reached')
     aID = args[1].get('automation_job_id')
