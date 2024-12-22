@@ -11,8 +11,8 @@ def findValueCustomFields(customFields, name):
     output = ''
     for x in customFields:
         if(x['name'] == name):
-            for y in x['values']:
-                output = f'{output} {y}'
+            for y in x.get('values'):
+                output = f'{output} {y},'
     return output
 
 def getURLLink(product_id):
