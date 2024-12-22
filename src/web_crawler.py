@@ -36,32 +36,19 @@ class WebScraper:
             }
 
     def get_webpage_html(self, url):
-        #req = grequests.head(url,headers=self.headers, timeout = 10)
+        req = grequests.head(url,headers=self.headers, timeout = 10)
         #response = requests.head(url, headers=self.headers,timeout=(10,20))
-        #response = grequests.map([req])[0]
-        conf = ScrapeConfig(asp=True,render_js=False, url=url, retry=False, timeout=30000, method="HEAD")
+        response = grequests.map([req])[0]
+        '''conf = ScrapeConfig(asp=True,render_js=False, url=url, retry=False, timeout=30000, method="HEAD")
         headerResponse = self.scrapfly.scrape(scrape_config=conf)    
-        #Send the request and get the response
+        #Send the request and get the response'''
 
-        if headerResponse and headerResponse.success:  # Ensure response is not None
+        if response:  # Ensure response is not None
                 # Check if the Content-Type header indicates HTML content
-            if not headerResponse or  not headerResponse.scrape_result['response_headers'].get('Content-Type', '').startswith('text/html'):
+            if not response.headers.get('Content-Type', '').startswith('text/html'):
                 # Skip non-HTML content
                 raise Exception('Non HTML Content')
-        else:
-            raise Exception(f'Access Forbidden')
         try:
-            # Create a HEAD request to fetch headers only
-        #request_url = 'https://api.scrapfly.io/scrape'
-        #params = {
-        #    'key': os.getenv('SCRAPFLY_API_KEY'),
-        #    'url': url,
-        #    'render_js': 'false',
-        #    'cache': 'true',
-        #    'asp': 'true',
-        #    'retry':'false',
-        #    'timeout':'30000'
-        #}
             conf = ScrapeConfig(asp=True,render_js=False,
                          url=url, retry=False, timeout=30000)
 

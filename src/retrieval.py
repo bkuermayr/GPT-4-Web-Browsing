@@ -46,7 +46,9 @@ class EmbeddingRetriever:
                 collection_name=f"{id}"
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
-            return retriever.get_relevant_documents(query)
+            result = retriever.get_relevant_documents(query)
+            db.delete_collection()
+            return result
         except Exception as e:
             print(f"An error occurred while creating or querying the Chroma database: {e}")
             return []

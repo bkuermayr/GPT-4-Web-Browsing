@@ -159,14 +159,14 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
     if state=='SUCCESS':
         success = not retval.get('failure',True)
         data = {
-            'description':"",
+            'answer':"",
             'references':"",
             'failureReason': ""
             }
         if success == False:
             data['failureReason'] = retval['reason']
         else:
-            data['description'] = retval['answer']['description']
+            data['answer'] = retval['answer']
             data['emptyWebResults'] = retval['answer']['emptyWebResults']
             if data['emptyWebResults'] == False:
                 data['references'] = retval['answer']['references']

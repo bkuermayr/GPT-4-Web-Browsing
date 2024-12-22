@@ -9,8 +9,6 @@ from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
-import base64
-import httpx
 
 
 
@@ -93,7 +91,7 @@ class GPTAnswer:
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
             print(cb)'''
-        print(message.__str__())
+        #print(message.__str__())
         gpt_answer = llm.invoke([HumanMessage(content=message)])
         return gpt_answer
 
