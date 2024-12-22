@@ -93,6 +93,7 @@ class GPTAnswer:
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
             print(cb)'''
+        print(message.__str__())
         gpt_answer = llm.invoke([HumanMessage(content=message)])
         return gpt_answer
 
