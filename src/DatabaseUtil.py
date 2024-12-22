@@ -19,7 +19,7 @@ def getURLLink(product_id):
     assets = client.table('product_assets_with_assets').select('*').eq('product_id',product_id).order('order',desc=False).execute().data
     for x in assets:
         if 'image' in x['type']:
-            temp = f'{assetUrl}{x['path']}'
+            temp = f'{assetUrl}{x["path"]}'
             if temp[-1] == '.': x = x[:-1]
             return temp
     return None
