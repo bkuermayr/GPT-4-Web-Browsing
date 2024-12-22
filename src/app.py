@@ -96,6 +96,7 @@ def createDescription():
     job = group(subtasks)
     task = job.apply_async()
     task.save()
+    print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
 

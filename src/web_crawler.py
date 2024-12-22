@@ -36,14 +36,16 @@ class WebScraper:
             }
 
     def get_webpage_html(self, url):
-        req = grequests.head(url,headers=self.headers, timeout = 10)
+        #req = grequests.head(url,headers=self.headers, timeout = 10)
         #response = requests.head(url, headers=self.headers,timeout=(10,20))
-        response = grequests.map([req])[0]
+        #response = grequests.map([req])[0]
+        conf = ScrapeConfig(asp=True,render_js=False, url=url, retry=False, timeout=30000, method="HEAD")
+        headerResponse = self.scrapfly.scrape(scrape_config=conf)    
         #Send the request and get the response
 
-        if response:  # Ensure response is not None
+        if headerResponse and headerResponse.success:  # Ensure response is not None
                 # Check if the Content-Type header indicates HTML content
-            if not response or  not response.headers.get('Content-Type', '').startswith('text/html'):
+            if not headerResponse or  not headerResponse.scrape_result['response_headers'].get('Content-Type', '').startswith('text/html'):
                 # Skip non-HTML content
                 raise Exception('Non HTML Content')
         else:
@@ -104,7 +106,7 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://pingvin-minigolf.de/Minigolfschlaeger/Profischlaeger/3D-Schlaeger/3D-Putter-Schlaeger-evolution.html"
+    test_url = "https://www.2ndswing.com/ai-one-putters"
     main_content = scraper.scrape_url(test_url)
     print(main_content)
     print(len(main_content))
