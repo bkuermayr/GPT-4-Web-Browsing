@@ -15,7 +15,6 @@ from locate_reference import ReferenceLocator
 from retrieval import EmbeddingRetriever
 from csv_postprocessor import process_data
 
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -36,7 +35,8 @@ celery = Celery('tasks', broker=broker_url, backend=backend_url)
 if ssl_options:
     celery.conf.update(
         broker_use_ssl=ssl_options,
-        redis_backend_use_ssl=ssl_options
+        redis_backend_use_ssl=ssl_options,
+        broker_connection_retry_on_startup=True
     )
 
 

@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from celery import Celery,group
+from celery import group
+from tasks import celery
 from dotenv import load_dotenv
 import os
 import ssl
@@ -27,22 +28,6 @@ if app.config['broker_url'].startswith('rediss://'):
 else:
     ssl_options = None
 
-def make_celery(app):
-    celery = Celery(
-        app.import_name,
-        broker=app.config['broker_url'],
-        backend=app.config['result_backend']
-    )
-    if ssl_options:
-        celery.conf.update(
-            broker_use_ssl=ssl_options,
-            redis_backend_use_ssl=ssl_options,
-            broker_connection_retry_on_startup=True
-        )
-    celery.conf.update(app.config)
-    return celery
-
-celery = make_celery(app)
 
 @app.route('/api/query', methods=['POST'])
 def process_query():
