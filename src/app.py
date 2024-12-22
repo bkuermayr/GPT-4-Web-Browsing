@@ -91,7 +91,7 @@ def createDescription():
         searchAttributes = []
         aiAttributes = []
         for x in automationFields:
-            attribute = x['special_field']
+            attribute = x.get('special_field')
             if not attribute: continue
             if x['is_search_term'] == False:
                 aiAttributes.append(attribute)
