@@ -96,7 +96,7 @@ def createDescription():
     job = group(subtasks)
     task = job.apply_async()
     task.save()
-    return jsonify({"task_id": task.id})
+    return jsonify({"task_id": task.id, "count":len(subtasks)})
 
 
 @app.route('/api/createDescription/<task_id>', methods=['GET'])
