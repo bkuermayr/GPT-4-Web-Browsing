@@ -34,6 +34,8 @@ class WebContentFetcher:
             if len(content) > 600:
                 with self.web_contents_lock:
                     self.web_contents.append({"url": url, "content": content})
+            else:
+                raise Exception("Zu wenig Content")
             end_time = time.time()
             print(f"Thread {thread_id} completed! Time consumed: {end_time - start_time:.2f}s")
         except Exception as e:

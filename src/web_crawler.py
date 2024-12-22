@@ -88,7 +88,7 @@ class WebScraper:
             allowlist.append('div') 
         # Iterate through specified tags and collect their text
         if html_soup:
-            text_elements = [t for t in html_soup.find_all(text=True) if t.parent.name in allowlist and t.strip()]
+            text_elements = [t for t in html_soup.find_all(string=True) if t.parent.name in allowlist and t.strip()]
         return "\n".join(text_elements).strip()
 
     def scrape_url(self, url, rule=0):
@@ -104,6 +104,7 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://www.puetzgolf.com/24-ai-one-mld-8-t-s-putter-24-ai-one-mld-8-t-s-putter"
+    test_url = "https://pingvin-minigolf.de/Minigolfschlaeger/Profischlaeger/3D-Schlaeger/3D-Putter-Schlaeger-evolution.html"
     main_content = scraper.scrape_url(test_url)
     print(main_content)
+    print(len(main_content))
