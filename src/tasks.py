@@ -148,7 +148,6 @@ def process_query_task(productData,automationData):
     f.write(f'\n {response.__str__()}')
     f.close()'''
 
-
     return response
 
 
@@ -173,7 +172,7 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
                 data['references'] = retval['answer']['references']
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
-        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':None,'error':retval}).execute()
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
 
 
 
