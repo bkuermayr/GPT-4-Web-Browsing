@@ -55,6 +55,7 @@ def process_query_task(productData,automationData):
     searchAttr = automationData.get('searchAttributes',[])
     aiAttr = automationData.get('aiAttributes',[])
     customFields = productData.get('custom_fields',[])
+    useFirstImage = automationData.get('use_first_product_image',False)
 
     searchVal = '' 
     aiVal = f'Product name: {query} \n'
@@ -100,7 +101,7 @@ def process_query_task(productData,automationData):
         '''f = open(f"demofile{product_id}.txt", "w")
         f.write(f'{relevant_docs_list.__str__()}')
         f.close()'''
-        assetUrl = getURLLink(product_id)
+        
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
         if not formatted_relevant_docs:
             response = {
@@ -119,6 +120,9 @@ def process_query_task(productData,automationData):
         formatted_relevant_docs = None
         serper_response = None
     start = time.time()
+    assetUrl = None
+    if useFirstImage == True:
+        assetUrl = getURLLink(product_id)
     ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal)
     answer = ai_message_obj.content
     answer = clean_json_string(answer)
