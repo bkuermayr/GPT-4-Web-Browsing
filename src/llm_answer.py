@@ -7,7 +7,10 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
+import base64
+import httpx
 
 
 
@@ -61,21 +64,37 @@ class GPTAnswer:
                 rearranged_index_list.append(index_dict[index])
         return rearranged_index_list
 
-    def get_answer(self, query, relevant_docs, language, output_format, profile):
+    def get_answer(self, query, relevant_docs, language, output_format, profile, image_url=None, attributes = ""):
         # Create an instance of ChatOpenAI and generate an answer
-        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=True, callbacks=[StreamingStdOutCallbackHandler()])
+        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=False, callbacks=[StreamingStdOutCallbackHandler()])
         
         template = self.config["template"]
         prompt_template = PromptTemplate(
-            input_variables=["profile", "context_str", "language", "query", "format"],
+            input_variables=["profile", "context_str", "language", "query", "format","context_attributes"],
             template=template
         )
 
         profile = "conscientious researcher" if not profile else profile
-        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile)
+        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile,context_attributes=attributes)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
-        gpt_answer = llm([HumanMessage(content=summary_prompt)])
+        #Variant with Base64:
+        #image_data = base64.b64encode(httpx.get(image_url).content).decode("utf-8")
+        message = [{"type": "text", "text": summary_prompt}]
+        if image_url:
+            message.append({
+                "type": "image_url",
+                "image_url": {"url":image_url}
+                #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
+            })
+        '''f = open(f"demofile{2}.txt", "w")
+        f.write(f'{message.__str__()}')
+        f.close()
+        with get_openai_callback() as cb:
+            gpt_answer = llm.invoke([HumanMessage(content = message)])
+            print(cb)'''
+        print(message.__str__())
+        gpt_answer = llm.invoke([HumanMessage(content=message)])
         return gpt_answer
 
 # Example usage

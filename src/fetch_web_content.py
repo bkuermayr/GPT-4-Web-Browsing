@@ -34,6 +34,8 @@ class WebContentFetcher:
             if len(content) > 600:
                 with self.web_contents_lock:
                     self.web_contents.append({"url": url, "content": content})
+            else:
+                raise Exception("Zu wenig Content")
             end_time = time.time()
             print(f"Thread {thread_id} completed! Time consumed: {end_time - start_time:.2f}s")
         except Exception as e:
@@ -86,8 +88,7 @@ class WebContentFetcher:
 
 # Example usage
 if __name__ == "__main__":
-    fetcher = WebContentFetcher("2024 Adidas Season Opener Kappe")
-    contents, serper_response,count = fetcher.fetch()
+    fetcher = WebContentFetcher("Ai-One Milled Eight T S Putter")
+    contents, serper_response = fetcher.fetch()
 
-    print(f"Count: {count}")
     

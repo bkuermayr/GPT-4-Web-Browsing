@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import time
 import ssl
-from DatabaseUtil import findValueCustomFields, client
+from DatabaseUtil import findValueCustomFields, client, getURLLink
 from celery.signals import task_postrun
 
 import json
@@ -57,13 +57,14 @@ def process_query_task(productData,automationData):
     customFields = productData.get('custom_fields',[])
 
     searchVal = '' 
-    aiVal = ''
+    aiVal = f'Product name: {query} \n'
     for i in searchAttr:
         temp = findValueCustomFields(customFields,i)
         searchVal = f'{searchVal} {temp}'
     for j in aiAttr:
         temp = findValueCustomFields(customFields,j)
-        aiVal = f'{aiVal} {temp}'
+        if j == 'title' or j == 'Title': continue
+        aiVal =f'{aiVal} {j}: {temp} \n'
     query = query + searchVal
     #url = data.get('whitelist',"")
     #temp = ""
@@ -99,6 +100,7 @@ def process_query_task(productData,automationData):
         '''f = open(f"demofile{product_id}.txt", "w")
         f.write(f'{relevant_docs_list.__str__()}')
         f.close()'''
+        assetUrl = getURLLink(product_id)
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
         if not formatted_relevant_docs:
             response = {
@@ -117,7 +119,7 @@ def process_query_task(productData,automationData):
         formatted_relevant_docs = None
         serper_response = None
     start = time.time()
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal)
     answer = ai_message_obj.content
     answer = clean_json_string(answer)
     end = time.time()

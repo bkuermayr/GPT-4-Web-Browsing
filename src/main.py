@@ -4,8 +4,12 @@ from llm_answer import GPTAnswer
 from locate_reference import ReferenceLocator
 import time
 import json
+from PIL import Image
+import base64
 
 if __name__ == "__main__":
+    
+     
     query = "1/4 Zip Fleece Pulover"
     prompt = "Was sind die Produkthighlights vom 1/4 Zip Fleece Pulover? Schreibe daraufhin eine Produktbeschreibung"
     output_format = "json" # User can specify output format
@@ -26,8 +30,9 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile)
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,"https://img.imageboss.me/pb/cover:contain/1280x1280/min/16/PS1373358-025_HF-1714139146357.png")
     answer = ai_message_obj.content + '\n'
+    print(answer)
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")
 

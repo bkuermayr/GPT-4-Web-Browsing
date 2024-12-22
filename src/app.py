@@ -91,13 +91,12 @@ def createDescription():
         searchAttributes = []
         aiAttributes = []
         for x in automationFields:
-            if x.get('special_field') and ('category' in x['special_field'].lower() or 'categories' in x['special_field'].lower()):
-                # Your logic here
-                continue
-            if x['is_search_term']:
-                searchAttributes.append(x['special_field'])
+            attribute = x.get('special_field')
+            if not attribute: continue
+            if x['is_search_term'] == False:
+                aiAttributes.append(attribute)
             else:
-                aiAttributes.append(x['special_field'])
+                searchAttributes.append(attribute)
         products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
         autoData['searchAttributes'] = searchAttributes
         autoData['aiAttributes'] = aiAttributes 
@@ -124,16 +123,6 @@ def taskGroupStatus(task_id):
     }
     return jsonify(response)
 
-'''
-@app.route('/test')
-def test():
-    subtasks = []
-    products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo', '1/4 Zip Fleece Pulover Rot', '1/4 Zip Fleece Pulover blau','adidas 2023 Season Opener Cap Womens','Callaway Warbird Herren Golfset','Wilson Stretch XL Komplettsatz']
-    for x in products:
-        subtasks.append(test2.s(x))
-    job = group(subtasks)
-    task = job.apply_async()
-    return jsonify({'test':'test'})'''
 
 @app.route('/')
 def hello():

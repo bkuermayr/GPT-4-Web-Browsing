@@ -44,10 +44,10 @@ class WebScraper:
         if response:  # Ensure response is not None
                 # Check if the Content-Type header indicates HTML content
             if not response or  not response.headers.get('Content-Type', '').startswith('text/html'):
-                    # Skip non-HTML content
-                return None
+                # Skip non-HTML content
+                raise Exception('Non HTML Content')
         else:
-            return None
+            raise Exception(f'Access Forbidden')
         try:
             # Create a HEAD request to fetch headers only
         #request_url = 'https://api.scrapfly.io/scrape'
@@ -88,7 +88,7 @@ class WebScraper:
             allowlist.append('div') 
         # Iterate through specified tags and collect their text
         if html_soup:
-            text_elements = [t for t in html_soup.find_all(text=True) if t.parent.name in allowlist and t.strip()]
+            text_elements = [t for t in html_soup.find_all(string=True) if t.parent.name in allowlist and t.strip()]
         return "\n".join(text_elements).strip()
 
     def scrape_url(self, url, rule=0):
@@ -104,5 +104,7 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://railroads.dot.gov/sites/fra.dot.gov/files/fra_net/16031/1980_MEASUREMENT%20OF%20WHEEL%20RAIL%20FORCES%20AT%20THE%20WASHINGTON.PDF"
+    test_url = "https://pingvin-minigolf.de/Minigolfschlaeger/Profischlaeger/3D-Schlaeger/3D-Putter-Schlaeger-evolution.html"
     main_content = scraper.scrape_url(test_url)
+    print(main_content)
+    print(len(main_content))
