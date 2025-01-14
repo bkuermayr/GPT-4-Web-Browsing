@@ -98,7 +98,7 @@ class GPTAnswer:
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "2021 DS 72 Putter"
+    query = "Fastback Putter"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 

@@ -6,7 +6,7 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 from dotenv import load_dotenv
 
 class EmbeddingRetriever:
-    TOP_K = 10  # Number of top K documents to retrieve
+    TOP_K = 15  # Number of top K documents to retrieve
 
     def __init__(self):
         # Load configuration from .env file
@@ -46,7 +46,9 @@ class EmbeddingRetriever:
                 collection_name=f"{id}"
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
-            result = retriever.get_relevant_documents(f'What are key-feaetures of the product')
+            # What are key-features and usages of the product
+            # What are the features and details that should be highlighted in a product description?
+            result = retriever.get_relevant_documents(f'What are key-features and usages of the product?')
             db.delete_collection()
             return result
         except Exception as e:
@@ -55,7 +57,7 @@ class EmbeddingRetriever:
 
 # Example usage
 if __name__ == "__main__":
-    query = "Fleece 1/4-Zip Pullovers"
+    query = "Fastback Putter"
 
     # Create a WebContentFetcher instance and fetch web contents
     web_contents_fetcher = WebContentFetcher(query)
@@ -65,7 +67,3 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
     relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
     print(f"\n\nRelevant Documents from VectorDB: {relevant_docs_list} \n")    
-    f = open(f"demofile5.txt", "a")
-    for l in relevant_docs_list:
-        f.write(l.__str__())
-    f.close()
