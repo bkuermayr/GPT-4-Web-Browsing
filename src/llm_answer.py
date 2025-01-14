@@ -35,14 +35,8 @@ class GPTAnswer:
             #if len(set(reference_index_list)) <= 3:
                 #return None
             formatted_reference = "\n"
-            k = 0
             for i in range(num_docs):
-                #Die Zeile überdenken
-                if len(reference_content_list[i]) <= 200:
-                    print("Bad source")
-                    k += 1
-                else:
-                    formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
+                formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
             return formatted_reference
 
         except Exception as e:
@@ -120,7 +114,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, serper_response['language'], output_format, profile)
+    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, 'german', output_format, profile)
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()
