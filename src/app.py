@@ -8,7 +8,7 @@ from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 import json
 
-from tasks import process_query_task, process_csv_feed, test2
+from tasks import process_query_task, process_csv_feed
 from DatabaseUtil import client
 # Load environment variables from .env file
 load_dotenv()

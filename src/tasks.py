@@ -144,9 +144,9 @@ def process_query_task(productData,automationData):
         'failure' : False
     }
 
-    '''f = open(f"demofile{product_id}.txt", "w")
+    f = open(f"demofile{product_id}.txt", "w")
     f.write(f'\n {response.__str__()}')
-    f.close()'''
+    f.close()
 
     return response
 
@@ -169,6 +169,8 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
             data['answer'] = retval['answer']
             data['emptyWebResults'] = retval['answer'].get('emptyWebResults',True)
             data['references'] = retval['answer'].get('references',[])
+            if success:
+                success = not data.get('emptyWebResults', True)
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
@@ -191,16 +193,6 @@ def clean_json_string(json_string):
     return cleaned_string.strip()
 
 
-@celery.task
-def test2(query):
-    web_contents_fetcher = WebContentFetcher(query=query, search_location='Vienna, Austria')
-    web_contents, serper_response, count = web_contents_fetcher.fetch()
-    return {'count':count,'query':query}
-
 if __name__ == "__main__":
     subtasks = []
     products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
-    for x in products:
-        subtasks.append(test2.s(x))
-    job = group(subtasks)
-    task = job.apply_async()

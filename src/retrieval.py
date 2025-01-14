@@ -15,7 +15,7 @@ class EmbeddingRetriever:
         # Initialize the text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
-    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str = 0):
+    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str = 1234):
         if len(contents_list) != len(link_list):
             raise ValueError("contents_list and link_list must have the same length")
 
@@ -46,7 +46,7 @@ class EmbeddingRetriever:
                 collection_name=f"{id}"
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
-            result = retriever.get_relevant_documents(query)
+            result = retriever.get_relevant_documents(f'What are key-feaetures of the product')
             db.delete_collection()
             return result
         except Exception as e:

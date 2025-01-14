@@ -98,7 +98,7 @@ class GPTAnswer:
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "Fleece 1/4-Zip Pullovers"
+    query = "2021 DS 72 Putter"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 
@@ -122,5 +122,6 @@ if __name__ == "__main__":
     # Generate answer from ChatOpenAI
     ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, serper_response['language'], output_format, profile)
     answer = ai_message_obj.content + '\n'
+    print(answer)
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")
