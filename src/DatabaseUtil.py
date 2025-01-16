@@ -20,11 +20,13 @@ def getURLLink(product_id):
     for x in assets:
         if 'image' in x['type']:
             temp = f'{assetUrl}{x["path"]}'
-            if temp[-1] == '.': x = x[:-1]
+            if temp[-1] == '.': 
+                temp = temp[:-1]
             return temp
     return None
 
 if __name__ == '__main__':
+    getURLLink(4248240)
     try:
         products_ids = ['4248240']
         response = client.table('automation').select('*').eq("id",6).single().execute()
