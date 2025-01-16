@@ -17,7 +17,7 @@ class EmbeddingRetriever:
         # Initialize the text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
 
-    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str = 1234):
+    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str):
         if len(contents_list) != len(link_list):
             raise ValueError("contents_list and link_list must have the same length")
 
@@ -34,7 +34,7 @@ class EmbeddingRetriever:
         if len(processed_contents) <= 3:
             return []
         #Create metadata and prepare documents for Chroma
-        metadatas = [{'url': link} for link in l]
+        metadatas = [{'url': link, 'product_id':id} for link in l]
         texts = self.text_splitter.create_documents(processed_contents, metadatas=metadatas)
 
         # Safely initialize and populate Chroma database
@@ -50,9 +50,10 @@ class EmbeddingRetriever:
                 embedding=OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
                 client=supabaseClient,
                 table_name="documents",
+                product_id=id
                 #connection=self.CONNECTION_STRING
             )
-            retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
+            retriever = db.as_retriever(search_kwargs={"k": self.TOP_K, "filter": {"product_id":id}})
             # What are key-features and usages of the product
             # What are the features and details that should be highlighted in a product description?
             result = retriever.invoke(f'What are key-features and usages of the product?')
@@ -64,7 +65,7 @@ class EmbeddingRetriever:
 
 # Example usage
 if __name__ == "__main__":
-    query = "Fastback Putter"
+    query = "Frontline 2.0 Skinny Putter"
 
     # Create a WebContentFetcher instance and fetch web contents
     web_contents_fetcher = WebContentFetcher(query)
@@ -72,5 +73,5 @@ if __name__ == "__main__":
 
     # Create an EmbeddingRetriever instance and retrieve relevant documents
     retriever = EmbeddingRetriever()
-    relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+    relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2854931)
     print(f"\n\nRelevant Documents from VectorDB: {relevant_docs_list} \n")    
