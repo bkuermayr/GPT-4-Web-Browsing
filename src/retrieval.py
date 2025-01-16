@@ -1,9 +1,11 @@
 import os
 from fetch_web_content import WebContentFetcher
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
+#from langchain_chroma import Chroma
+from langchain_community.vectorstores import SupabaseVectorStore
 from langchain_openai.embeddings import OpenAIEmbeddings
 from dotenv import load_dotenv
+from DatabaseUtil import client as supabaseClient
 
 class EmbeddingRetriever:
     TOP_K = 15  # Number of top K documents to retrieve
@@ -37,19 +39,27 @@ class EmbeddingRetriever:
 
         # Safely initialize and populate Chroma database
         try:
+            '''
             db = Chroma.from_documents(
-                texts,
-                OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
-                collection_name=f"{id}"
+                documents=texts,
+                embedding=OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
+                #connection=self.CONNECTION_STRING
+            )'''
+            db = SupabaseVectorStore.from_documents(
+                documents=texts,
+                embedding=OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
+                client=supabaseClient,
+                table_name="documents",
+                #connection=self.CONNECTION_STRING
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
             # What are key-features and usages of the product
             # What are the features and details that should be highlighted in a product description?
             result = retriever.invoke(f'What are key-features and usages of the product?')
-            db.delete_collection()
+            #db.delete_collection()
             return result
         except Exception as e:
-            print(f"An error occurred while creating or querying the Chroma database: {e}")
+            print(f"An error occurred while creating or querying the PGVector database: {e}")
             return []
 
 # Example usage
