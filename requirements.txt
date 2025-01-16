@@ -56,6 +56,7 @@ hpack==4.0.0
 httpcore==1.0.5
 httptools==0.6.4
 httpx==0.27.0
+httpx-sse==0.4.0
 huggingface-hub==0.26.2
 humanfriendly==10.0
 hyperframe==6.0.1
@@ -119,6 +120,7 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22
 pydantic==2.8.2
+pydantic-settings==2.7.1
 pydantic_core==2.20.1
 pydeck==0.9.1
 Pygments==2.18.0
@@ -136,6 +138,7 @@ referencing==0.35.1
 regex==2024.7.24
 requests==2.32.3
 requests-oauthlib==2.0.0
+requests-toolbelt==1.0.0
 rich==13.9.4
 rpds-py==0.21.0
 rsa==4.9
@@ -166,6 +169,7 @@ tzdata==2024.1
 urllib3==2.2.2
 uvicorn==0.32.0
 uvloop==0.21.0
+validators==0.34.0
 vine==5.1.0
 watchdog==6.0.0
 watchfiles==0.24.0

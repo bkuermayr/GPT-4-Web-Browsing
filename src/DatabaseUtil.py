@@ -26,7 +26,6 @@ def getURLLink(product_id):
     return None
 
 if __name__ == '__main__':
-    getURLLink(4248240)
     try:
         products_ids = ['4248240']
         response = client.table('automation').select('*').eq("id",6).single().execute()

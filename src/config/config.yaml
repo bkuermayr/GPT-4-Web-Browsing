@@ -1,5 +1,5 @@
 template: |
-  You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task. If for some reason they are empty, remember that and add to the output emptyWebResults true and if there is at least one web search result set emptyWebResults to false. Web Search Results:
+  You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task. If for some reason they are empty, remember that and add to the output emptyWebResults true and if there is at least one web search result set emptyWebResults to false.Web Search Results:
   """{context_str}"""
   Furthermore, here are some attributes of the product (there can also be none), also delimited by triple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color etc.), the key-pair values follow simple mapping/json structure so (Key:Value). You can use them to write your answer to the prompt and/or get an better understanding, what you write about.
   """{context_attributes}"""

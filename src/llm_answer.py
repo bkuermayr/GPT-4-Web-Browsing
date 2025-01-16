@@ -9,7 +9,7 @@ from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 #from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
-
+import validators
 
 
 class GPTAnswer:
@@ -73,7 +73,7 @@ class GPTAnswer:
         #Variant with Base64:
         #image_data = base64.b64encode(httpx.get(image_url).content).decode("utf-8")
         message = [{"type": "text", "text": summary_prompt}]
-        if image_url:
+        if image_url and validators.url(image_url):
             message.append({
                 "type": "image_url",
                 "image_url": {"url":image_url}
@@ -119,3 +119,4 @@ if __name__ == "__main__":
     print(answer)
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")
+    print(ai_message_obj)
