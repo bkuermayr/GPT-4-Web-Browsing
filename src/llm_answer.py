@@ -3,11 +3,11 @@ import os
 import yaml
 from fetch_web_content import WebContentFetcher
 from retrieval import EmbeddingRetriever
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain_community.callbacks import get_openai_callback
+#from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
 
 

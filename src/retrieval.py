@@ -1,7 +1,7 @@
 import os
 from fetch_web_content import WebContentFetcher
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_openai.embeddings import OpenAIEmbeddings
 from dotenv import load_dotenv
 
@@ -13,7 +13,7 @@ class EmbeddingRetriever:
         load_dotenv()
 
         # Initialize the text splitter
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
 
     def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str = 1234):
         if len(contents_list) != len(link_list):
@@ -30,9 +30,6 @@ class EmbeddingRetriever:
         f.write(f'{processed_contents.__str__()} \n')
         f.close() '''
         if len(processed_contents) <= 3:
-            '''f = open(f"demofile{id}.txt", "a")
-            f.write(f'{"Sehr wenig\n"}')
-            f.close()''' 
             return []
         #Create metadata and prepare documents for Chroma
         metadatas = [{'url': link} for link in l]
@@ -48,7 +45,7 @@ class EmbeddingRetriever:
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K})
             # What are key-features and usages of the product
             # What are the features and details that should be highlighted in a product description?
-            result = retriever.get_relevant_documents(f'What are key-features and usages of the product?')
+            result = retriever.invoke(f'What are key-features and usages of the product?')
             db.delete_collection()
             return result
         except Exception as e:
