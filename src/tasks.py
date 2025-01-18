@@ -130,9 +130,6 @@ def process_query_task(productData,automationData):
 
     logging.info(f'Generated answer in {end - start} seconds')
 
-    locator = ReferenceLocator(answer, serper_response)
-    reference_cards = locator.locate_source()
-
     response = {
         'query': query,
         'job_id': job_id,
@@ -140,13 +137,13 @@ def process_query_task(productData,automationData):
         'answer': json.loads(answer),
         'gpt_answer_time': end - start,
         'output_language': output_language,
-        'reference_cards': reference_cards,
         'failure' : False
     }
 
+    '''
     f = open(f"demofile{product_id}.txt", "w")
     f.write(f'\n {response.__str__()}')
-    f.close()
+    f.close()'''
 
     return response
 
@@ -174,7 +171,7 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
-
+    client.rpc("increment_processed_products", {'job_id': aID}).execute()
 
 
 
