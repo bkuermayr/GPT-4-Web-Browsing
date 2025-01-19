@@ -13,7 +13,7 @@ import validators
 
 
 class GPTAnswer:
-    TOP_K = 10  # Top K documents to retrieve
+    TOP_K = 15  # Top K documents to retrieve
 
     def __init__(self):
         # Load configuration from a YAML file
@@ -26,14 +26,18 @@ class GPTAnswer:
         self.api_key = os.getenv("OPENAI_API_KEY")
 
     def _format_reference(self, relevant_docs_list, link_list):
+        link_list = []
+        for temp in relevant_docs_list:
+            url = temp.metadata["url"]
+            if(url not in link_list):
+                link_list.append(url)
         try:
             num_docs = min(len(relevant_docs_list), self.TOP_K)
             reference_url_list = [(relevant_docs_list[i].metadata)['url'] for i in range(num_docs)]
             reference_content_list = [relevant_docs_list[i].page_content for i in range(num_docs)]
             reference_index_list = [link_list.index(link)+1 for link in reference_url_list if link in link_list]      
             rearranged_index_list = self._rearrange_index(reference_index_list)
-            #if len(set(reference_index_list)) <= 3:
-                #return None
+
             formatted_reference = "\n"
             for i in range(num_docs):
                 formatted_reference += ('Webpage[' + str(rearranged_index_list[i]) + '], url: ' + reference_url_list[i] + ':\n' + reference_content_list[i] + '\n\n\n')
@@ -92,7 +96,7 @@ class GPTAnswer:
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "Fastback Putter"
+    query = "Der Spider GT X Black Putter von Taylormade"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 
@@ -104,7 +108,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query)
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2853045 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
