@@ -123,13 +123,12 @@ def process_query_task(productData,automationData):
     assetUrl = None
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal)
-    answer = ai_message_obj.content
-    answer = clean_json_string(answer)
-    end = time.time()
-
-    logging.info(f'Generated answer in {end - start} seconds')
     try:
+        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal)
+        answer = ai_message_obj.content
+        answer = clean_json_string(answer)
+        end = time.time()
+        logging.info(f'Generated answer in {end - start} seconds')
         response = {
         'query': query,
         'job_id': job_id,
@@ -150,7 +149,7 @@ def process_query_task(productData,automationData):
                 'output_language': output_language,
                 'reference_cards': [],
                 'failure' : True,
-                'reason': 'OpenAI did not provide Answer/parsable Answer'
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
             }
          return response
 
