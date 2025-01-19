@@ -129,8 +129,8 @@ def process_query_task(productData,automationData):
     end = time.time()
 
     logging.info(f'Generated answer in {end - start} seconds')
-
-    response = {
+    try:
+        response = {
         'query': query,
         'job_id': job_id,
         'product_id': product_id,
@@ -138,14 +138,21 @@ def process_query_task(productData,automationData):
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'failure' : False
-    }
-
-    '''
-    f = open(f"demofile{product_id}.txt", "w")
-    f.write(f'\n {response.__str__()}')
-    f.close()'''
-
-    return response
+        }
+        return response
+    except Exception as e:
+         response = {
+                'query': query,
+                'job_id': job_id,   
+                'product_id': product_id,
+                'answer': {},
+                'gpt_answer_time': 0,
+                'output_language': output_language,
+                'reference_cards': [],
+                'failure' : True,
+                'reason': 'OpenAI did not provide Answer/parsable Answer'
+            }
+         return response
 
 
 @task_postrun.connect(sender=process_query_task)
