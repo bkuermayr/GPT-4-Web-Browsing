@@ -166,8 +166,12 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
             data['answer'] = retval['answer']
             data['emptyWebResults'] = retval['answer'].get('emptyWebResults',True)
             data['references'] = retval['answer'].get('references',[])
+            data['answer'].pop('emptyWebResults', None)
+            data.pop('failureReason', None)
             if success:
                 success = not data.get('emptyWebResults', True)
+                success = success and (not data['answer'].get('different', False))
+                data['answer'].pop('different', None)
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
@@ -193,3 +197,13 @@ def clean_json_string(json_string):
 if __name__ == "__main__":
     subtasks = []
     products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
+    x = """{
+    "Name": "Jennifer Smith",
+    "Contact Number": 7867567898,
+    "Email": "jen123@gmail.com",
+    "Hobbies":["Reading", "Sketching", "Horse Riding"]
+    }"""
+    print(json.loads(x))
+    test = json.loads(x)
+    test.pop('Name', None)
+    print(test)
