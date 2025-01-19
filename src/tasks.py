@@ -150,9 +150,9 @@ def process_query_task(productData,automationData):
 
 @task_postrun.connect(sender=process_query_task)
 def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
-    print('Postrun reached')
     aID = args[1].get('automation_job_id')
     product_id = args[0].get('id',"")
+    print(f'Postrun reached by {product_id}')
     if state=='SUCCESS':
         success = not retval.get('failure',True)
         data = {

@@ -10,7 +10,8 @@ assetUrl = 'https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/as
 def findValueCustomFields(customFields, name):
     output = ''
     for x in customFields:
-        if(x['name'] == name):
+        #print(x.__str__())
+        if(x.get('name','') == name):
             for y in x.get('values'):
                 output = f'{output} {y},'
     return output
