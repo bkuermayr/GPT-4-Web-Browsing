@@ -70,12 +70,14 @@ def createDescription():
     try:
         automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
         response = client.table('automation').select('*').eq("id",automationID).single().execute()
-        automationFields = client.table('automation_field').select('special_field, is_search_term').eq("automation_id",automationID).execute().data
+        automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",automationID).execute().data
         autoData = response.data
         searchAttributes = []
         aiAttributes = []
         for x in automationFields:
             attribute = x.get('special_field')
+            if not attribute: 
+                attribute = x.get('attribute_name')
             if not attribute: continue
             if x['is_search_term'] == False:
                 aiAttributes.append(attribute)
