@@ -50,7 +50,7 @@ class WebScraper:
                 raise Exception('Non HTML Content')
         try:
             conf = ScrapeConfig(asp=True,render_js=False,
-                         url=url, retry=False, timeout=30000)
+                         url=url)
 
             response = self.scrapfly.scrape(scrape_config=conf)
             if response and response.success:
@@ -93,7 +93,7 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://www.2ndswing.com/ai-one-putters"
+    test_url = "https://www.rockbottomgolf.com/golf-clubs/putters/odyssey-golf-dfx-rossie-putter/"
     main_content = scraper.scrape_url(test_url)
     print(main_content)
     print(len(main_content))
