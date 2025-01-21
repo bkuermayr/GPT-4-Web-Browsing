@@ -83,7 +83,8 @@ class GPTAnswer:
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        '''f = open(f"demofile{2}.txt", "w")
+        '''    
+        f = open(f"demofile{2}.txt", "w")
         f.write(f'{message.__str__()}')
         f.close()
         '''
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, 'german', output_format, profile)
+    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, 'german', output_format, profile, None, "", "")
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()
