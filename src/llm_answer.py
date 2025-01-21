@@ -111,7 +111,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2854905 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2854905, 80 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
