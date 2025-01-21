@@ -66,7 +66,7 @@ def process_query_task(productData,automationData):
         temp = findValueCustomFields(customFields,j)
         if j == 'title' or j == 'Title': continue
         aiVal =f'{aiVal} {j}: {temp} \n'
-    query = query + searchVal
+    #query = query + searchVal
     #url = data.get('whitelist',"")
     #temp = ""
     #if len(url) >= 1:
@@ -124,7 +124,7 @@ def process_query_task(productData,automationData):
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal)
+        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal, query)
         answer = ai_message_obj.content
         answer = clean_json_string(answer)
         end = time.time()

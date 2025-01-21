@@ -60,18 +60,18 @@ class GPTAnswer:
                 rearranged_index_list.append(index_dict[index])
         return rearranged_index_list
 
-    def get_answer(self, query, relevant_docs, language, output_format, profile, image_url=None, attributes = ""):
+    def get_answer(self, query, relevant_docs, language, output_format, profile, image_url=None, attributes = "", product_name = ""):
         # Create an instance of ChatOpenAI and generate an answer
         llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=False, callbacks=[StreamingStdOutCallbackHandler()])
         
         template = self.config["template"]
         prompt_template = PromptTemplate(
-            input_variables=["profile", "context_str", "language", "query", "format","context_attributes"],
+            input_variables=["profile", "context_str", "language", "query", "format","context_attributes", "product_name"],
             template=template
         )
 
         profile = "conscientious researcher" if not profile else profile
-        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile,context_attributes=attributes)
+        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile,context_attributes=attributes,product_name=product_name)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
         #Variant with Base64:
@@ -86,6 +86,8 @@ class GPTAnswer:
         '''f = open(f"demofile{2}.txt", "w")
         f.write(f'{message.__str__()}')
         f.close()
+        '''
+        '''
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
             print(cb)'''
@@ -108,7 +110,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2853045 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2854905 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])

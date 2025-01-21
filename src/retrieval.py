@@ -56,7 +56,7 @@ class EmbeddingRetriever:
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K, "filter": {"product_id":id}})
             # What are key-features and usages of the product
             # What are the features and details that should be highlighted in a product description?
-            result = retriever.invoke(f'What are key-features and usages of the product?')
+            result = retriever.invoke(f'What are the main features and advantages of the product?')
             #db.delete_collection()
             return result
         except Exception as e:
