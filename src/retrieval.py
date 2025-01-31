@@ -15,7 +15,7 @@ class EmbeddingRetriever:
         load_dotenv()
 
         # Initialize the text splitter
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+        self.text_splitter = RecursiveCharacterTextSplitter(separators=["\n\n"],chunk_size=1500, chunk_overlap=0)
 
     def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str, job_id: str):
         if len(contents_list) != len(link_list):
@@ -39,19 +39,12 @@ class EmbeddingRetriever:
 
         # Safely initialize and populate Chroma database
         try:
-            '''
-            db = Chroma.from_documents(
-                documents=texts,
-                embedding=OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
-                #connection=self.CONNECTION_STRING
-            )'''
             db = SupabaseVectorStore.from_documents(
                 documents=texts,
                 embedding=OpenAIEmbeddings(model='text-embedding-ada-002', openai_api_key=os.getenv("OPENAI_API_KEY")),
                 client=supabaseClient,
                 table_name="documents",
                 product_id=id
-                #connection=self.CONNECTION_STRING
             )
             retriever = db.as_retriever(search_kwargs={"k": self.TOP_K, "filter": {"job_id" : job_id, "product_id" : id}})
 

@@ -83,7 +83,7 @@ class GPTAnswer:
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        '''    
+        '''
         f = open(f"demofile{2}.txt", "w")
         f.write(f'{message.__str__()}')
         f.close()
@@ -99,7 +99,7 @@ class GPTAnswer:
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "Der Spider GT X Black Putter von Taylormade"
+    query = "SM10 TC Wedge"
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, 2854905, 80 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], "Schreibe eine Beschreibung für einen Golfschläger", 2798876, 1 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(query, formatted_relevant_docs, 'german', output_format, profile, None, "", "")
+    ai_message_obj = content_processor.get_answer("Schreibe eine Beschreibung für einen Golfschläger", formatted_relevant_docs, 'german', output_format, profile, None, "", "#48 RH Ultralight Sandwedge")
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()

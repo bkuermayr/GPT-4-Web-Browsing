@@ -93,7 +93,7 @@ class WebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = WebScraper(user_agent='macOS')
-    test_url = "https://www.rockbottomgolf.com/golf-clubs/putters/odyssey-golf-dfx-rossie-putter/"
+    test_url = "https://www.vokey.com/product/WM161.html"
     main_content = scraper.scrape_url(test_url)
     print(main_content)
     print(len(main_content))
