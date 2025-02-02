@@ -4,7 +4,7 @@ template: |
   Furthermore, here are some attributes of the product (there can also be none), delimited by quadruple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color etc.), the key-pair values follow simple mapping/json structure so (Key:Value).
   These attributes provide valuable details about the product, and your task is to analyze them and understand about what kind of product you are writing about. You are  allowed to use these details in the response.
   """"{context_attributes}""""
-  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query. 
+  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query.
   Try to use only the web results, if they have interesting statements/key-detail incooperate them in the reply. Interessting details would be something that could catch the readers attention or a unique feature of this product.
   If the web results have an interesting opening, that could catch the reads attention, use them. Use the Webresults and analyze on how their description were written and learn from them, especially if the results contain something unique or a key-take away feature. 
   Try to use as many web results as you can to fulfill my request.
@@ -17,7 +17,7 @@ template: |
   Here is an example of a reference:
       [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
           Quoted sentence: Tencent accounted for roughly 50% of domestic market revenue for the quarter, compared to 40% in Q1 2022.
- 
+  If the query consinsts of multiple tasks, that can be split, then they should also be split in the reply object. For example, if the query was write a description with attributes and a flat text, the output should have a key flat text and a key attributes.
   Answer in language: {language}
   Query: {query}
   Product: {product_name}

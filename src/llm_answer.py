@@ -83,11 +83,11 @@ class GPTAnswer:
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        '''
+        
         f = open(f"demofile{2}.txt", "w")
         f.write(f'{message.__str__()}')
         f.close()
-        '''
+        
         '''
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
@@ -100,6 +100,15 @@ class GPTAnswer:
 if __name__ == "__main__":
     content_processor = GPTAnswer()
     query = "SM10 TC Wedge"
+    prompt = '''Schreibe eine Beschreibung, dabei sollen diese aus drei Teilen bestehen: 
+    Attribute: Aus den attributes list, gelistet als key-value pairs
+    Merkmale: Minimal drei Merkmale pro Produkt. 
+    Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie 
+    eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer 
+    mit einem “Call to Action” (bsp: «Entdecke jetzt die Vorteile von...», oder «Hole dir heute 
+    noch den)
+    Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, 
+    um SEO zu vereinfachen'''
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 
@@ -111,7 +120,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], "Schreibe eine Beschreibung für einen Golfschläger", 2798876, 1 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 2798876, 2 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
@@ -121,7 +130,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer("Schreibe eine Beschreibung für einen Golfschläger", formatted_relevant_docs, 'german', output_format, profile, None, "", "#48 RH Ultralight Sandwedge")
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', output_format, profile, None, "", "#48 RH Ultralight Sandwedge")
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()
