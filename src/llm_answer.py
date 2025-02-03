@@ -99,10 +99,11 @@ class GPTAnswer:
 # Example usage
 if __name__ == "__main__":
     content_processor = GPTAnswer()
-    query = "SM10 TC Wedge"
+    query = "CHERVÒ Allista Damen-Poloshirt"
+    attributeList = "Material:96% Polyamid, 4% Elasthan \n Grössen:34, 36, 38, 40, 42, 44 \n Farbe: Gestreift (gemustert)\n Passform: Regular Fit"
     prompt = '''Schreibe eine Beschreibung, dabei sollen diese aus drei Teilen bestehen: 
     Attribute: Aus den attributes list, gelistet als key-value pairs
-    Merkmale: Minimal drei Merkmale pro Produkt. 
+    Merkmale: Minimal drei Merkmale, maximal acht. Diese sollen wichtige Merkmale des Produktes sein, also Punkte die ihm speziell machen. 
     Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie 
     eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer 
     mit einem “Call to Action” (bsp: «Entdecke jetzt die Vorteile von...», oder «Hole dir heute 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 2798876, 2 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 2798876, 4 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', output_format, profile, None, "", "#48 RH Ultralight Sandwedge")
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', output_format, profile, None, attributeList, query)
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()

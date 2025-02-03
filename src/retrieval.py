@@ -37,6 +37,12 @@ class EmbeddingRetriever:
         metadatas = [{'url': link, 'product_id':id, 'job_id': job_id} for link in l]
         texts = self.text_splitter.create_documents(processed_contents, metadatas=metadatas)
 
+        for document in texts:
+            contLen = len(document.page_content)
+            if(contLen < 400):
+                texts.remove(document)
+                #print(document)
+
         # Safely initialize and populate Chroma database
         try:
             db = SupabaseVectorStore.from_documents(
@@ -59,7 +65,8 @@ class EmbeddingRetriever:
 
 # Example usage
 if __name__ == "__main__":
-    query = "Frontline 2.0 Skinny Putter"
+    query = "CHERVÒ Allista Damen-Poloshirt"
+    #query = "Approach S62 GPS-Golfuhr"
 
     # Create a WebContentFetcher instance and fetch web contents
     web_contents_fetcher = WebContentFetcher(query)
