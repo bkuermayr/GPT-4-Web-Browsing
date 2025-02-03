@@ -172,7 +172,6 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
             data['failureReason'] = retval['reason']
         else:
             data['answer'] = retval['answer']
-            logging.info(data['answer'])
             data['emptyWebResults'] = retval['answer'].get('emptyWebResults',True)
             data['references'] = retval['answer'].get('references',[])
             data['answer'].pop('references', None)
