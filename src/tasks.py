@@ -126,7 +126,7 @@ def process_query_task(productData,automationData):
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal, query)
+        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, profile,assetUrl,aiVal, query)
         answer = ai_message_obj.content
         answer = clean_json_string(answer.strip())
         end = time.time()
@@ -171,19 +171,22 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
         if success == False:
             data['failureReason'] = retval['reason']
         else:
+            flags = retval['answer'].get("flags",{})
             data['answer'] = retval['answer']
-            data['emptyWebResults'] = retval['answer'].get('emptyWebResults',True)
+            data['emptyWebResults'] = flags.get('emptyWebResults',True)
             data['references'] = retval['answer'].get('references',[])
             data['answer'].pop('references', None)
-            data['answer'].pop('emptyWebResults', None)
+            data['answer'].pop('flags', None)
+            realAnswer = data['answer'].get('answer',"")
+            data['answer'] = realAnswer
             data.pop('failureReason', None)
             if success:
                 success = not data.get('emptyWebResults', True)
-                success = success and (not data['answer'].get('different', False))
-                data['answer'].pop('different', None)
+                success = success and (not flags.get('different', False))
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
+        #print('test')
     client.rpc("increment_processed_products", {'job_id': aID}).execute()
 
 
@@ -200,30 +203,34 @@ def process_csv_feed(url,remote_directory, filename):
 def clean_json_string(json_string):
     pattern = r'^```json\s*(.*?)\s*```$'
     cleaned_string = re.sub(pattern, r'\1', json_string, flags=re.DOTALL)
-    return cleaned_string.strip()
+    cleaned_json = re.sub(r',\s*([\]}])', r'\1', cleaned_string)
+    return cleaned_json.strip()
 
 
 if __name__ == "__main__":
-    test = '''  ```json
-{
-  "attributes": {
-    "Hand": "Rechts- und Linkshänder",
-    "Winkel": "3 - 15°, 5 - 18°, 7 - 21°, 9 - 24°"
+    test = '''{
+  "answer": {
+    "Attribute": "",
+    "Merkmale": [
+      "Ultraleichtes Design für müheloses Spiel",
+      "Optimierte Schlagfläche für verbesserte Kontrolle",
+      "Ergonomischer Griff für maximalen Komfort",
+      "Hochwertige Materialien für Langlebigkeit",
+      "Vielseitige Anwendung auf verschiedenen Platzbedingungen"
+    ],
+    "Fliesstext": "Der #48 RH Ultralight Sandwedge ist der perfekte Begleiter für Golfer, die Wert auf Leichtigkeit und Präzision legen. Mit seinem ultraleichten Design ermöglicht dieser Schläger müheloses Spiel, selbst bei langen Runden. Die optimierte Schlagfläche sorgt für verbesserte Kontrolle und Genauigkeit, während der ergonomische Griff maximalen Komfort bietet. Hergestellt aus hochwertigen Materialien, ist dieser Sandwedge nicht nur langlebig, sondern auch vielseitig einsetzbar auf verschiedenen Platzbedingungen. Egal, ob Sie ein Anfänger oder ein erfahrener Spieler sind, dieser Schläger wird Ihre Leistung auf dem Golfplatz erheblich steigern. Entdecken Sie jetzt die Vorteile des #48 RH Ultralight Sandwedge und verbessern Sie Ihr Spiel!",
   },
-  "features": [
-    "Ultra-leichtes Design für schnelle Geschwindigkeiten",
-    "Hohe Abschusswinkel für moderate Schwunggeschwindigkeiten",
-    "Anpassbare Optionen für individuelle Bedürfnisse",
-    "Verfügbar in Standard- und Ultra-Light-Versionen",
-    "Optimiert für ernsthafte Golfer auf jedem Niveau"
-  ],
-  "text": "Das GT1 Fairwayholz ist die perfekte Wahl für Golfer, die Wert auf Leistung und Anpassungsfähigkeit legen. Mit seinem ultra-leichten Design fördert es schnelle Geschwindigkeiten und hohe Abschusswinkel, was es ideal für Spieler mit moderaten Schwunggeschwindigkeiten macht. Die Möglichkeit, zwischen Standard- und Ultra-Light-Versionen zu wählen, ermöglicht es jedem Golfer, die für ihn passende Ausführung zu finden. Zudem bietet das GT1 eine Vielzahl von Anpassungsoptionen, die es ernsthaften Golfern ermöglichen, ihre Ausrüstung zu personalisieren und ihre Leistung zu maximieren. Egal, ob Sie ein erfahrener Spieler oder ein Anfänger sind, das GT1 Fairwayholz wird Ihnen helfen, Ihr Spiel auf das nächste Level zu heben. Entdecken Sie jetzt die Vorteile des GT1 Fairwayholzes und verbessern Sie Ihr Golfspiel!",
-  "emptyWebResults": false,
-  "different": false
+  "flags": {
+    "different": false,
+    "usedImage": false,
+    "emptyWebResults": false
+  },
+  "references": []
 }
-```'''
-    print(clean_json_string(test.strip()))
-
+'''
+    test2 = clean_json_string(test.strip())
+    print(json.loads(test2))
+    '''
     subtasks = []
     products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
     x = """{
@@ -235,4 +242,4 @@ if __name__ == "__main__":
     #print(json.loads(x))
     test = json.loads(x)
     test.pop('Name', None)
-    #print(test)
+    #print(test)'''

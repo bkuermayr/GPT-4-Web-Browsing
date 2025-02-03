@@ -14,7 +14,7 @@ import logging
 
 
 class GPTAnswer:
-    TOP_K = 15  # Top K documents to retrieve
+    TOP_K = 12  # Top K documents to retrieve
 
     def __init__(self):
         # Load configuration from a YAML file
@@ -61,18 +61,18 @@ class GPTAnswer:
                 rearranged_index_list.append(index_dict[index])
         return rearranged_index_list
 
-    def get_answer(self, query, relevant_docs, language, output_format, profile, image_url=None, attributes = "", product_name = ""):
+    def get_answer(self, query, relevant_docs, language, profile, image_url=None, attributes = "", product_name = ""):
         # Create an instance of ChatOpenAI and generate an answer
         llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=False, callbacks=[StreamingStdOutCallbackHandler()])
         
         template = self.config["template"]
         prompt_template = PromptTemplate(
-            input_variables=["profile", "context_str", "language", "query", "format","context_attributes", "product_name"],
+            input_variables=["profile", "context_str", "language", "query","context_attributes", "product_name"],
             template=template
         )
 
         profile = "conscientious researcher" if not profile else profile
-        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, format=output_format, profile=profile,context_attributes=attributes,product_name=product_name)
+        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
         #Variant with Base64:
@@ -134,7 +134,7 @@ eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbesch
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', output_format, profile, None, attributeList, query)
+    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', profile, None, attributeList, query)
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()

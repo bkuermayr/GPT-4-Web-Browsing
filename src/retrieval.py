@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from DatabaseUtil import client as supabaseClient
 
 class EmbeddingRetriever:
-    TOP_K = 15  # Number of top K documents to retrieve
+    TOP_K = 12  # Number of top K documents to retrieve
 
     def __init__(self):
         # Load configuration from .env file
@@ -39,7 +39,7 @@ class EmbeddingRetriever:
 
         for document in texts:
             contLen = len(document.page_content)
-            if(contLen < 400):
+            if(contLen < 150):
                 texts.remove(document)
                 #print(document)
 

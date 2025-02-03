@@ -1,28 +1,55 @@
 template: |
-  You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task.Web Search Results:
-  """{context_str}"""
-  Furthermore, here are some attributes of the product (there can also be none), delimited by quadruple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color etc.), the key-pair values follow simple mapping/json structure so (Key:Value).
-  These attributes provide valuable details about the product, and your task is to analyze them and understand about what kind of product you are writing about. You are  allowed to use these details in the response:
-  """"{context_attributes}""""
-  Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query.
-  - Extract entire paragraphs from the search results if they provide rich details about the product. Avoid limiting your references to only short quotes, but also short quotes are allowed. 
+  You will be provided with text delimited by triple quotes that are web search results that were presented for you. You have to use them for your task.  
+  **Web Search Results:**  
+  """{context_str}"""  
+
+  Furthermore, here are some attributes of the product (there can also be none), delimited by quadruple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color, etc.), and the key-pair values follow a simple mapping/json structure (Key:Value).  
+  These attributes provide valuable details about the product, and your task is to analyze them and understand what kind of product you are writing about. You are allowed to use these details in the response:  
+  """"{context_attributes}""""  
+
+  **Instructions:**  
+  You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query.  
+  - Extract entire paragraphs from the search results if they provide rich details about the product. Avoid limiting your references to only short quotes.  
   - Try to use only the web results; if they contain key details, incorporate them fully into the response.  
-  - If a web result has an engaging or unique opening that could catch the reader’s attention, use it as an introduction.  
+  - If a web result has an engaging or unique opening that could catch the reader’s attention, **use it as an introduction**.  
   - Analyze how descriptions in the web results are written, and use their style and structure—especially if they highlight unique product features.  
   - Incorporate multiple lines from the same source when necessary to maintain context, but also ensure diversity by referencing multiple sources.  
-  Just dont mention the price, another e-commerce competitor or the delivery time in the reply. 
-  Additionally, there may be a picture URL attached to this prompt. If the image is available and accessible, you can analyze it and use the product's features and characteristics shown in the image to improve the quality and detail of your response. However, if there is no image URL or you cannot access it, ignore the image.
-  If the information in the web results and the picture contradict each other or seem to describe completely different products, set the output flag different: true. If the information from both sources aligns, set different: false
-  If you managed to access the picture and anaylzied it (only if there was a URL provided), so add the flag usedImage:true to the output. If you could not access it write usedImage:false, if there was no URL attached, ignore this flag.
-  If the web results were empty (so there was no text in the triple quotes) add the flag emptyWebResults:true to the output, if there was at least one web search result add the flag emptyWebResults:false to the output.
-  At the end of the answer, include a "references" key in the json object. This key must contain an array of references, where each reference includes:
-    "url": The source url.
-    "extracted_sentence": An exact extracted sentence from the web search results.
-  Here is an example of a reference:
-      [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
-          Extracted sentence: Tencent accounted for roughly 50% of domestic market revenue for the quarter, compared to 40% in Q1 2022.
+
+  **Restrictions:**  
+  - Do not mention the price, competitors, or delivery time in the response.  
+
+  **Image Analysis:**  
+  - If a picture URL is attached to this prompt, analyze the image and use its details to enhance your response.  
+  - If no image URL is available, ignore this step.  
+  - If the information in the web results and the image contradict each other, set `"different": true`. Otherwise, set `"different": false`.  
+  - If the image was analyzed, set `"usedImage": true`. If not, set `"usedImage": false`.  
+
+  **Handling Empty Web Results:**  
+  - If no web results are provided (Web Search Results (the text in the triple delimited quotes) is empty), set `"emptyWebResults": true`. Otherwise, set `"emptyWebResults": false`.  
+
+  **References**
+  In the response you have to list your used references with their extracted_text, that means when you quote/use a sentence/multiple sentences you have to mention them in the following style:  
+  - `"url"`: The source URL.  
+  - `"extracted_text"`: A longer extracted section from the web search results that provides meaningful context.  
+
+  **Output Format**
+  Your final response must be a single JSON object structured as follows:  
+    "answer":
+      //Here come the answer keys
+    ,
+    "flags": 
+      "different": false,
+      "usedImage": false,
+      "emptyWebResults": false
+    ,
+    "references": 
+        "url": "https://www.example.com/source1",
+        "extracted_text": "A longer extracted section that provides meaningful context about the product..."
+      ,
+      ...
+
+
   Answer in language: {language}
   Query: {query}
   Product: {product_name}
-  Output Format: {format}
-  You must organize your output according to the Output Format. If the Output Format is empty, use json-object as a default value. Make sure that the answer is a singular, complete object.
+  Output Format: json-object
