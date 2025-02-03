@@ -85,11 +85,11 @@ class GPTAnswer:
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        '''
+        
         f = open(f"demofile{2}.txt", "w")
         f.write(f'{imageMessage.__str__()}')
         f.close()
-        '''
+        
         '''
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
@@ -108,15 +108,11 @@ if __name__ == "__main__":
     content_processor = GPTAnswer()
     query = "CHERVÒ Allista Damen-Poloshirt"
     attributeList = "Material:96% Polyamid, 4% Elasthan \n Grössen:34, 36, 38, 40, 42, 44 \n Farbe: Gestreift (gemustert)\n Passform: Regular Fit"
-    prompt = '''Schreibe eine Beschreibung, dabei sollen diese aus drei Teilen bestehen: 
-    Attribute: Aus den attributes list, gelistet als key-value pairs
-    Merkmale: Minimal drei Merkmale, maximal acht. Diese sollen wichtige Merkmale des Produktes sein, also Punkte die ihm speziell machen. 
-    Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie 
-    eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer 
-    mit einem “Call to Action” (bsp: «Entdecke jetzt die Vorteile von...», oder «Hole dir heute 
-    noch den)
-    Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, 
-    um SEO zu vereinfachen'''
+    prompt = '''Schreibe eine Beschreibung, dabei soll diese aus drei Teilen bestehen: 
+Attribute: Dieser Punkt darf nur mit dir übergebenen attributes aus der attributes list befüllt werden (wenn du keine bekommen hast, dann gib einen leeren Text für diesen Punkt zurück), gelistet als key-value pairs
+Merkmale: Minimal drei Merkmale, maximal acht. Diese sollen wichtige Merkmale des Produktes sein, also Punkte die ihm speziell machen. 
+Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie
+eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer mit einem “Call to Action” (bsp: «Entdecke jetzt die Vorteile von...», oder «Hole dir heute noch den) Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, um SEO zu vereinfachen.'''
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 
@@ -128,7 +124,7 @@ if __name__ == "__main__":
     retriever = EmbeddingRetriever()
 
     try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 2798876, 4 )
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 2798876, 7 )
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
@@ -143,4 +139,4 @@ if __name__ == "__main__":
     print(answer)
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")
-    print(ai_message_obj)
+    #print(ai_message_obj)

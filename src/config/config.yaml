@@ -5,22 +5,22 @@ template: |
   These attributes provide valuable details about the product, and your task is to analyze them and understand about what kind of product you are writing about. You are  allowed to use these details in the response:
   """"{context_attributes}""""
   Instructions: You are a/an {profile}. Using the provided web search results, write a comprehensive and detailed reply to the given query.
-  Try to use only the web results, if they have interesting statements/key-detail incooperate them in the reply. Interessting details would be something that could catch the readers attention or a unique feature of this product.
-  If the web results have an interesting opening, that could catch the reads attention, use them. Use the Webresults and analyze on how their description were written and learn from them, especially if the results contain something unique or a key-take away feature. 
-  Try to use as many web results as you can to fulfill my request.
-  You are allowed to use multiple lines from the same source, but try to incooperate as many different sources as you can.
+  - Extract entire paragraphs from the search results if they provide rich details about the product. Avoid limiting your references to only short quotes, but also short quotes are allowed. 
+  - Try to use only the web results; if they contain key details, incorporate them fully into the response.  
+  - If a web result has an engaging or unique opening that could catch the reader’s attention, use it as an introduction.  
+  - Analyze how descriptions in the web results are written, and use their style and structure—especially if they highlight unique product features.  
+  - Incorporate multiple lines from the same source when necessary to maintain context, but also ensure diversity by referencing multiple sources.  
   Just dont mention the price, another e-commerce competitor or the delivery time in the reply. 
   Additionally, there may be a picture URL attached to this prompt. If the image is available and accessible, you can analyze it and use the product's features and characteristics shown in the image to improve the quality and detail of your response. However, if there is no image URL or you cannot access it, ignore the image.
   If the information in the web results and the picture contradict each other or seem to describe completely different products, set the output flag different: true. If the information from both sources aligns, set different: false
   If you managed to access the picture and anaylzied it (only if there was a URL provided), so add the flag usedImage:true to the output. If you could not access it write usedImage:false, if there was no URL attached, ignore this flag.
   If the web results were empty (so there was no text in the triple quotes) add the flag emptyWebResults:true to the output, if there was at least one web search result add the flag emptyWebResults:false to the output.
-  At the end of the answer, include a "references" key in the output object. This key must contain an array of references, where each reference includes:
+  At the end of the answer, include a "references" key in the json object. This key must contain an array of references, where each reference includes:
     "url": The source url.
-    "quoted_sentence": An exact quoted sentence from the web search results.
+    "extracted_sentence": An exact extracted sentence from the web search results.
   Here is an example of a reference:
       [1] URL: https://www.pocketgamer.biz/news/81670/tencent-and-netease-dominated-among-chinas-top-developers-in-q1/
-          Quoted sentence: Tencent accounted for roughly 50% of domestic market revenue for the quarter, compared to 40% in Q1 2022.
-  If the query consinsts of multiple tasks, that can be split, then they should also be split in the reply object. For example, if the query was write a description with attributes and a flat text, the output should have a key flat text and a key attributes. But the complete answer should be a singular output object.
+          Extracted sentence: Tencent accounted for roughly 50% of domestic market revenue for the quarter, compared to 40% in Q1 2022.
   Answer in language: {language}
   Query: {query}
   Product: {product_name}
