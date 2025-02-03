@@ -10,6 +10,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 #from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
 import validators
+import logging
 
 
 class GPTAnswer:
@@ -77,24 +78,30 @@ class GPTAnswer:
         #Variant with Base64:
         #image_data = base64.b64encode(httpx.get(image_url).content).decode("utf-8")
         message = [{"type": "text", "text": summary_prompt}]
+        imageMessage = [{"type": "text", "text": summary_prompt}]
         if image_url and validators.url(image_url):
-            message.append({
+            imageMessage.append({
                 "type": "image_url",
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        
+        '''
         f = open(f"demofile{2}.txt", "w")
-        f.write(f'{message.__str__()}')
+        f.write(f'{imageMessage.__str__()}')
         f.close()
-        
+        '''
         '''
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
             print(cb)'''
         #print(message.__str__())
-        gpt_answer = llm.invoke([HumanMessage(content=message)])
-        return gpt_answer
+        try:
+            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)])
+            return gpt_answer
+        except Exception as e:
+            logging.info(f"Image not accessible for AI: {image_url}")
+            gpt_answer = llm.invoke([HumanMessage(content=message)])
+            return gpt_answer
 
 # Example usage
 if __name__ == "__main__":

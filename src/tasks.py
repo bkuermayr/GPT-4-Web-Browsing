@@ -58,17 +58,18 @@ def process_query_task(productData,automationData):
     useFirstImage = automationData.get('use_first_product_image',False)
 
     searchVal = '' 
-    aiVal = f'Product name: {query} \n'
+    aiVal = ''
     for i in searchAttr:
         temp = findValueCustomFields(customFields,i)
         searchVal = f'{searchVal} {temp}'
     for j in aiAttr:
         temp = findValueCustomFields(customFields,j)
         if j == 'title' or j == 'Title': continue
+        if(temp == ''): continue
         aiVal =f'{aiVal} {j}: {temp} \n'
     #query = query + searchVal
     #url = data.get('whitelist',"")
-    #temp = ""
+    #temp = ""#48 RH Ultralight Sandwedge
     #if len(url) >= 1:
     #    temp = f"site:{url[0]}"
     #for i in range(1,len(url)):
@@ -78,6 +79,7 @@ def process_query_task(productData,automationData):
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
     logging.info(f'Received prompt: {prompt}')
+    logging.info(f'Received following attributes: {aiVal}')
     content_processor = GPTAnswer()
 
     if use_web_search:
@@ -126,7 +128,7 @@ def process_query_task(productData,automationData):
     try:
         ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, output_format, profile,assetUrl,aiVal, query)
         answer = ai_message_obj.content
-        answer = clean_json_string(answer)
+        answer = clean_json_string(answer.strip())
         end = time.time()
         logging.info(f'Generated answer in {end - start} seconds')
         response = {
@@ -170,6 +172,7 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
             data['failureReason'] = retval['reason']
         else:
             data['answer'] = retval['answer']
+            logging.info(data['answer'])
             data['emptyWebResults'] = retval['answer'].get('emptyWebResults',True)
             data['references'] = retval['answer'].get('references',[])
             data['answer'].pop('references', None)
@@ -202,6 +205,26 @@ def clean_json_string(json_string):
 
 
 if __name__ == "__main__":
+    test = '''  ```json
+{
+  "attributes": {
+    "Hand": "Rechts- und Linkshänder",
+    "Winkel": "3 - 15°, 5 - 18°, 7 - 21°, 9 - 24°"
+  },
+  "features": [
+    "Ultra-leichtes Design für schnelle Geschwindigkeiten",
+    "Hohe Abschusswinkel für moderate Schwunggeschwindigkeiten",
+    "Anpassbare Optionen für individuelle Bedürfnisse",
+    "Verfügbar in Standard- und Ultra-Light-Versionen",
+    "Optimiert für ernsthafte Golfer auf jedem Niveau"
+  ],
+  "text": "Das GT1 Fairwayholz ist die perfekte Wahl für Golfer, die Wert auf Leistung und Anpassungsfähigkeit legen. Mit seinem ultra-leichten Design fördert es schnelle Geschwindigkeiten und hohe Abschusswinkel, was es ideal für Spieler mit moderaten Schwunggeschwindigkeiten macht. Die Möglichkeit, zwischen Standard- und Ultra-Light-Versionen zu wählen, ermöglicht es jedem Golfer, die für ihn passende Ausführung zu finden. Zudem bietet das GT1 eine Vielzahl von Anpassungsoptionen, die es ernsthaften Golfern ermöglichen, ihre Ausrüstung zu personalisieren und ihre Leistung zu maximieren. Egal, ob Sie ein erfahrener Spieler oder ein Anfänger sind, das GT1 Fairwayholz wird Ihnen helfen, Ihr Spiel auf das nächste Level zu heben. Entdecken Sie jetzt die Vorteile des GT1 Fairwayholzes und verbessern Sie Ihr Golfspiel!",
+  "emptyWebResults": false,
+  "different": false
+}
+```'''
+    print(clean_json_string(test.strip()))
+
     subtasks = []
     products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
     x = """{
@@ -210,7 +233,7 @@ if __name__ == "__main__":
     "Email": "jen123@gmail.com",
     "Hobbies":["Reading", "Sketching", "Horse Riding"]
     }"""
-    print(json.loads(x))
+    #print(json.loads(x))
     test = json.loads(x)
     test.pop('Name', None)
-    print(test)
+    #print(test)

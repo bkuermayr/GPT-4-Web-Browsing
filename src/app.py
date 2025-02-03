@@ -69,8 +69,8 @@ def createDescription():
     products_ids = data.get('product_ids',[])
     try:
         automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
-        response = client.table('automation').select('*').eq("id",automationID).single().execute()
-        automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",automationID).execute().data
+        response = client.table('automation').select('*').eq("id",9).single().execute()
+        automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",9).execute().data
         autoData = response.data
         searchAttributes = []
         aiAttributes = []
