@@ -25,4 +25,4 @@ template: |
   Query: {query}
   Product: {product_name}
   Output Format: {format}
-  Please organize your output according to the Output Format. If the Output Format is empty, use json-object.
+  You must organize your output according to the Output Format. If the Output Format is empty, use json-object as a default value. Make sure that the answer is a singular, complete object.

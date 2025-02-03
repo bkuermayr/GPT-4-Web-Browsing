@@ -85,11 +85,11 @@ class GPTAnswer:
                 "image_url": {"url":image_url}
                 #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
             })
-        
+        '''
         f = open(f"demofile{2}.txt", "w")
         f.write(f'{imageMessage.__str__()}')
         f.close()
-        
+        '''
         '''
         with get_openai_callback() as cb:
             gpt_answer = llm.invoke([HumanMessage(content = message)])
