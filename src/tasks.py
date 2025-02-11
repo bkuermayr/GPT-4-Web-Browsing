@@ -44,7 +44,6 @@ if ssl_options:
 def process_query_task(productData,automationData):
     query = productData.get('title',"")
     prompt = automationData.get('prompt', '')
-    output_format = automationData.get('output_format', "json_object")
     profile = automationData.get('profile', "")
     search_location = automationData.get('search_location', "")
     search_language = automationData.get('search_language', "")
@@ -52,29 +51,26 @@ def process_query_task(productData,automationData):
     job_id = automationData.get('automation_job_id', "")
     product_id = productData.get('id',"")
     use_web_search = automationData.get('use_web_search', True)
-    searchAttr = automationData.get('searchAttributes',[])
     aiAttr = automationData.get('aiAttributes',[])
     customFields = productData.get('custom_fields',[])
     useFirstImage = automationData.get('use_first_product_image',False)
 
-    searchVal = '' 
     aiVal = ''
-    for i in searchAttr:
-        temp = findValueCustomFields(customFields,i)
-        searchVal = f'{searchVal} {temp}'
     for j in aiAttr:
         temp = findValueCustomFields(customFields,j)
         if j == 'title' or j == 'Title': continue
         if(temp == ''): continue
         aiVal =f'{aiVal} {j}: {temp} \n'
-    #query = query + searchVal
-    #url = data.get('whitelist',"")
-    #temp = ""#48 RH Ultralight Sandwedge
-    #if len(url) >= 1:
-    #    temp = f"site:{url[0]}"
-    #for i in range(1,len(url)):
-    #    temp = f"{temp} OR site:{url[i]}"
-    # query = temp + query
+    urls = automationData.get('search_domains','').split(",")
+    serperQuery = ""
+    for i in urls:
+        if i.strip() == '': continue
+        if serperQuery == '':
+            serperQuery = f'site:{i.strip()}'
+        else:
+            serperQuery = f"{serperQuery} OR site:{i.strip()}"
+    serperQuery = f'{serperQuery} {query}'
+    logging.info(f'Received searchQuery: {serperQuery}')
     # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
 
     logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
@@ -83,7 +79,7 @@ def process_query_task(productData,automationData):
     content_processor = GPTAnswer()
 
     if use_web_search:
-        web_contents_fetcher = WebContentFetcher(query=query, search_location=search_location, search_language=search_language, output_language=output_language)
+        web_contents_fetcher = WebContentFetcher(query=serperQuery, search_location=search_location, search_language=search_language, output_language=output_language)
         web_contents, serper_response = web_contents_fetcher.fetch()
         retriever = EmbeddingRetriever()
         if serper_response is None:

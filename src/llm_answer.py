@@ -71,7 +71,7 @@ class GPTAnswer:
             template=template
         )
 
-        profile = "conscientious researcher" if not profile else profile
+        profile = "You are a helpful data extraction assistant." if not profile else profile
         summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
         # print("\n\nThe message sent to LLM:\n", summary_prompt)
         # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")

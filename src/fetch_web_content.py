@@ -62,13 +62,13 @@ class WebContentFetcher:
         for thread in threads:
             thread.join()
 
-    def fetch(self):
+    def fetch(self, rule=0):
         # Main method to fetch web content based on the query
         serper_response = self._serper_launcher()
         if serper_response:
             print(f"Fetching web content for query: {self.query}")
             url_list = serper_response["links"]
-            if len(url_list) <= 3:
+            if len(url_list) < 3 and rule==0:
                 return [], None
             print(f"Found {len(url_list)} URLs from the search results")
             self._crawl_threads_launcher(url_list)
