@@ -103,12 +103,15 @@ def createDescription():
 
 @app.route('/api/createDescription/<task_id>', methods=['GET'])
 def taskGroupStatus(task_id):
-    task = celery.GroupResult.restore(task_id)
+    try:
+        task = celery.GroupResult.restore(task_id)
+    except Exception as e:
+        return jsonify({"Error":"Group already deleted, therefore done"}),400
     response = {
             'comp_num':task.completed_count(),
             'done':task.ready()
     }
-    return jsonify(response)
+    return jsonify(response),200
 
 
 @app.route('/')
