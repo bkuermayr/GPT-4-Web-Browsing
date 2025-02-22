@@ -157,16 +157,19 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
     aID = args[1].get('automation_job_id')
     product_id = args[0].get('id',"")
     print(f'Postrun reached by {product_id}')
+
     if state=='SUCCESS':
         success = not retval.get('failure',True)
-        data = {
-            'answer':"",
-            'references':"",
-            'failureReason': ""
-            }
         if success == False:
-            data['failureReason'] = retval['reason']
+            data = {
+                'failureReason': retval['reason']
+            }
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
         else:
+            data = {
+                'answer':"",
+                'references':"",
+            }
             flags = retval['answer'].get("flags",{})
             data['answer'] = retval['answer']
             data['emptyWebResults'] = flags.get('emptyWebResults',True)
@@ -175,15 +178,13 @@ def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwa
             data['answer'].pop('flags', None)
             realAnswer = data['answer'].get('answer',"")
             data['answer'] = realAnswer
-            data.pop('failureReason', None)
             if success:
                 success = not data.get('emptyWebResults', True)
                 success = success and (not flags.get('different', False))
             data['answer']=flatten_answer(data)
-        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
-        #print('test')
     client.rpc("increment_processed_products", {'job_id': aID}).execute()
 
 
@@ -229,28 +230,32 @@ def flatten_answer(data):
 if __name__ == "__main__":
     test = '''{
   "answer": {
-    "Attribute": "",
     "Merkmale": [
-      "Ultraleichtes Design für müheloses Spiel",
-      "Optimierte Schlagfläche für verbesserte Kontrolle",
-      "Ergonomischer Griff für maximalen Komfort",
-      "Hochwertige Materialien für Langlebigkeit",
-      "Vielseitige Anwendung auf verschiedenen Platzbedingungen"
+      "14-Wege-Top: Organisiert Ihre Schläger und verhindert ein Rütteln während der Fahrt.",
+      "Wetterbeständiges Material: Schützt Ihre Ausrüstung mit einer matten PU-Lederhülle vor den Elementen.",
+      "Geräumige Aufbewahrung: Bietet ausreichend Platz für alle wichtigen Utensilien mit insgesamt 11 Fächern.",
+      "Integrierte Kühlfach: Hält Ihre Getränke an warmen Tagen kühl und bereit für den Genuss."
     ],
-    "Test": {
-        "Test1": "Test2",
-        "Test2": "Test3"
+    "Attribute": {
+      "Farbe": "Schwarz",
+      "Material": "Polyester",
+      "Anzahl der Fächer": "11",
+      "Anzahl der Trennwände": "15"
     },
-    "Fliesstext": "Der #48 RH Ultralight Sandwedge ist der perfekte Begleiter für Golfer, die Wert auf Leichtigkeit und Präzision legen. Mit seinem ultraleichten Design ermöglicht dieser Schläger müheloses Spiel, selbst bei langen Runden. Die optimierte Schlagfläche sorgt für verbesserte Kontrolle und Genauigkeit, während der ergonomische Griff maximalen Komfort bietet. Hergestellt aus hochwertigen Materialien, ist dieser Sandwedge nicht nur langlebig, sondern auch vielseitig einsetzbar auf verschiedenen Platzbedingungen. Egal, ob Sie ein Anfänger oder ein erfahrener Spieler sind, dieser Schläger wird Ihre Leistung auf dem Golfplatz erheblich steigern. Entdecken Sie jetzt die Vorteile des #48 RH Ultralight Sandwedge und verbessern Sie Ihr Spiel!",
+    "Fliesstext": "Der TaylorMade Signature Cart Golf Bag ist die perfekte Wahl für Golfer, die Wert auf Stil und Funktionalität legen. Mit einem 14-Wege-Top sorgt dieser Golfbag dafür, dass Ihre Schläger sicher und ordentlich verstaut sind, während das wetterbeständige PU-Leder Ihre Ausrüstung vor Regen und Feuchtigkeit schützt. Die 11 Fächer bieten ausreichend Platz für alles, was Sie auf dem Golfplatz benötigen, einschließlich eines speziellen Kühlfachs für Ihre Getränke. Ideal für sowohl Freizeit- als auch Turnierspieler, die eine komfortable und organisierte Runde genießen möchten. Entdecken Sie jetzt die Vorteile des TaylorMade Signature Cart Golf Bags und machen Sie Ihr Golfspiel noch angenehmer!"
   },
-  "flags": {
-    "different": false,
-    "usedImage": false,
-    "emptyWebResults": false
-  },
-  "references": []
-}
-'''
+  "references": [
+    {
+      "url": "https://www.amazon.com/TaylorMade-Signature-Cart-Golf-Bag/dp/B0D39YRZ4F",
+      "extracted_text": "14-way top: Keep your clubs unrattled while you cruise the fairways. Weather-resistant material: Protect your bag with a weather-resistant matte PU leather shell. Spacious storage: Store your most prized possessions securely with 11 pockets."
+    },
+    {
+      "url": "https://golfparadise.net.au/products/taylormade-tm24-signature-cart-bag?srsltid=AfmBOopPiX8cRQZIwrcmZcka7LIzqFVZ8cARsZUvwFXDySj9rcmVuNhw",
+      "extracted_text": "Ride in comfort with the Signature Cart Bag, which includes a 14-way top that keeps your clubs unrattled while you cruise the fairways. A weather-resistant matte PU leather shell ensures that your belongings stay dry and protected from the elements."
+    }
+  ],
+  "emptyWebResults": false
+}'''
     test2 = json.loads(clean_json_string(test.strip()))
     test2['answer']=flatten_answer(test2)
     print(test2)
