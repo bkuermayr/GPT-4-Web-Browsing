@@ -17,7 +17,7 @@ class EmbeddingRetriever:
         # Initialize the text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(separators=["\n\n"],chunk_size=1500, chunk_overlap=0)
 
-    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str, job_id: str):
+    def retrieve_embeddings(self, contents_list: list, link_list: list, query: str, id:str, job_id: str, rule=0):
         if len(contents_list) != len(link_list):
             raise ValueError("contents_list and link_list must have the same length")
 
@@ -31,7 +31,7 @@ class EmbeddingRetriever:
         '''f = open(f"demofile{id}.txt", "w")
         f.write(f'{processed_contents.__str__()} \n')
         f.close() '''
-        if len(processed_contents) <= 3:
+        if len(processed_contents) <= 3 and rule == 0:
             return []
         #Create metadata and prepare documents for Chroma
         metadatas = [{'url': link, 'product_id':id, 'job_id': job_id} for link in l]

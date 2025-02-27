@@ -97,7 +97,7 @@ def process_query_task(productData,automationData):
                 'reason': 'Not enough quality sources'
             }
             return response
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id, job_id)
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id, job_id, rule=searchRule)
         '''f = open(f"demofile{product_id}.txt", "w")
         f.write(f'{relevant_docs_list.__str__()}')
         f.close()'''
