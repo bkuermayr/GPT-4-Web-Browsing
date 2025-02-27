@@ -112,7 +112,7 @@ if __name__ == "__main__":
 Attribute: Dieser Punkt darf nur mit dir übergebenen attributes aus der attributes list befüllt werden (wenn du keine bekommen hast, dann gib einen leeren Text für diesen Punkt zurück), gelistet als key-value pairs
 Merkmale: Minimal drei Merkmale, maximal acht. Diese sollen wichtige Merkmale des Produktes sein, also Punkte die ihm speziell machen. 
 Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie
-eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer mit einem “Call to Action”. Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, um SEO zu vereinfachen.'''
+eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer mit einem “Call to Action”. Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, um SEO zu vereinfachen.Wenn die Antworten formatiert sind, benutzte HTML Formatierung'''
     output_format = "" # User can specify output format
     profile = "" # User can define the role for LLM
 

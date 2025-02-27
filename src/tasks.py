@@ -63,12 +63,14 @@ def process_query_task(productData,automationData):
         aiVal =f'{aiVal} {j}: {temp} \n'
     urls = automationData.get('search_domains','').split(",")
     serperQuery = ""
+    searchRule = 0
     for i in urls:
         if i.strip() == '': continue
         if serperQuery == '':
             serperQuery = f'site:{i.strip()}'
         else:
             serperQuery = f"{serperQuery} OR site:{i.strip()}"
+        searchRule = 1
     serperQuery = f'{serperQuery} {query}'
     logging.info(f'Received searchQuery: {serperQuery}')
     # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
@@ -80,7 +82,7 @@ def process_query_task(productData,automationData):
 
     if use_web_search:
         web_contents_fetcher = WebContentFetcher(query=serperQuery, search_location=search_location, search_language=search_language, output_language=output_language)
-        web_contents, serper_response = web_contents_fetcher.fetch()
+        web_contents, serper_response = web_contents_fetcher.fetch(searchRule)
         retriever = EmbeddingRetriever()
         if serper_response is None:
             response = {
