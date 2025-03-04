@@ -7,8 +7,8 @@ import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
-from tasks import process_query_task, process_csv_feed
-from DatabaseUtil import client
+from tasks import process_query_task, process_csv_feed, process_category_task
+from DatabaseUtil import client, getCategoryStructure
 # Load environment variables from .env file
 load_dotenv()
 
@@ -61,6 +61,37 @@ def trigger_process_csv_feed():
     remote_directory = request.args.get('remote_directory')
     task = process_csv_feed.apply_async(args=[url, remote_directory, filename])
     return jsonify({"task_id": task.id})
+
+@app.route('/api/assignCategory', methods=['POST'])
+def assignCategory():
+    data = request.get_json()
+    job_id = data.get('job_id','')
+    products_ids = data.get('prdodut_ids', [])
+    try:
+        automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
+        autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data
+        inputAttributes = client.table('automation_field_attributes_view').select('special_field, attribute_name').eq("automation_id",automationID).eq('is_input_field',True).execute().data
+        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
+        categories = client.table('categories').select('id, title, parent_id').eq('org_id',autoData.get('org_id')).execute().data
+        cs = getCategoryStructure(categories)
+        attributeName = []
+        for x in inputAttributes:
+            attribute = x.get('special_field')
+            if not attribute: 
+                attribute = x.get('attribute_name')
+            if not attribute: continue
+            attributeName.append(attribute)
+    except Exception as e:
+        print(f'Error: {e}')
+        return jsonify({'Error': True})
+    subtasks = []
+    for x in products:
+        subtasks.append(process_category_task.s(cs,attributeName,x,job_id, autoData.get('use_first_product_image', False)))
+    job = group(subtasks)
+    task = job.apply_async()
+    task.save()
+    print(f"Task ID: {task.id}")
+    return jsonify({"task_id": task.id, "count":len(subtasks)})
 
 @app.route('/api/createDescription',methods=['POST'])
 def createDescription():

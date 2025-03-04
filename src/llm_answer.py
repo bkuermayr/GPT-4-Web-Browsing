@@ -61,10 +61,35 @@ class GPTAnswer:
                 rearranged_index_list.append(index_dict[index])
         return rearranged_index_list
 
-    def get_answer(self, query, relevant_docs, language, profile, image_url=None, attributes = "", product_name = ""):
+    def get_answer(self, prompt, image_url=None):
         # Create an instance of ChatOpenAI and generate an answer
         llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=False, callbacks=[StreamingStdOutCallbackHandler()], model_kwargs={"response_format": {"type": "json_object"}})
         
+        message = [{"type": "text", "text": prompt}]
+        imageMessage = [{"type": "text", "text": prompt}]
+        if image_url and validators.url(image_url):
+            imageMessage.append({
+                "type": "image_url",
+                "image_url": {"url":image_url}
+            })
+        try:
+            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)])
+            return gpt_answer
+        except Exception as e:
+            logging.info(f"Image not accessible for AI: {image_url}")
+            gpt_answer = llm.invoke([HumanMessage(content=message)])
+            return gpt_answer
+
+    def get_template_category(self, product_name, categories, attributes):
+        template = self.config["template_category"]
+        prompt_template = PromptTemplate(
+            input_variables=["product_name", "categories", "attributes"],
+            template=template
+        )
+        summary_prompt = prompt_template.format(product_name=product_name, categories=categories, attributes=attributes)
+        return summary_prompt
+    
+    def get_template_generativeText(self, query, relevant_docs, language, profile, attributes = "", product_name = ""):
         template = self.config["template"]
         prompt_template = PromptTemplate(
             input_variables=["profile", "context_str", "language", "query","context_attributes", "product_name"],
@@ -73,35 +98,8 @@ class GPTAnswer:
 
         profile = "You are a helpful data extraction assistant." if not profile else profile
         summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
-        # print("\n\nThe message sent to LLM:\n", summary_prompt)
-        # print("\n\n", "="*30, "GPT's Answer: ", "="*30, "\n")
-        #Variant with Base64:
-        #image_data = base64.b64encode(httpx.get(image_url).content).decode("utf-8")
-        message = [{"type": "text", "text": summary_prompt}]
-        imageMessage = [{"type": "text", "text": summary_prompt}]
-        if image_url and validators.url(image_url):
-            imageMessage.append({
-                "type": "image_url",
-                "image_url": {"url":image_url}
-                #"image_url":  {"url": f"data:image/png;base64,{image_data}"}
-            })
-        '''
-        f = open(f"demofile{2}.txt", "w")
-        f.write(f'{imageMessage.__str__()}')
-        f.close()
-        '''
-        '''
-        with get_openai_callback() as cb:
-            gpt_answer = llm.invoke([HumanMessage(content = message)])
-            print(cb)'''
-        #print(message.__str__())
-        try:
-            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)])
-            return gpt_answer
-        except Exception as e:
-            logging.info(f"Image not accessible for AI: {image_url}")
-            gpt_answer = llm.invoke([HumanMessage(content=message)])
-            return gpt_answer
+        return summary_prompt
+        
 
 # Example usage
 if __name__ == "__main__":
@@ -134,7 +132,8 @@ eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbesch
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, 'german', profile, None, attributeList, query)
+    summary = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, 'german', profile, attributeList, query)
+    ai_message_obj = content_processor.get_answer(summary, None)
     answer = ai_message_obj.content + '\n'
     print(answer)
     end = time.time()

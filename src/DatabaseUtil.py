@@ -6,6 +6,36 @@ key = os.getenv("SUPABASE_KEY")
 client = create_client(url,key)
 assetUrl = 'https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/assets/'
 
+from collections import defaultdict
+import json
+
+
+def getCategoryStructure(categories):
+    tree = {}
+    lookup = {}
+
+    # Create a lookup dictionary for quick access
+    for item in categories:
+        key = f"{item['title']} ({item['id']})"
+        lookup[item['id']] = {"key": key, "children": {}}
+
+    # Build the hierarchical structure
+    for item in categories:
+        key = lookup[item['id']]["key"]
+        parent_id = item['parent_id']
+
+        if parent_id is None:
+            tree[key] = lookup[item['id']]["children"] 
+        else:
+            parent_key = lookup.get(parent_id)
+            if parent_key:
+                parent_key["children"][key] = lookup[item['id']]["children"] 
+    return clean_tree(tree)
+
+def clean_tree(node):
+    if isinstance(node, dict):
+        return {k: clean_tree(v) if v else "" for k, v in node.items()}
+    return node
 
 def findValueCustomFields(customFields, name):
     output = ''
@@ -29,29 +59,8 @@ def getURLLink(product_id):
 
 if __name__ == '__main__':
     try:
-        products_ids = ['7950589']
-        response = client.table('automation').select('*').eq("id",6).single().execute()
-        automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",9).execute().data
-        autoData = response.data
-        products = client.table('products').select('id,title,custom_fields').in_("id",products_ids).filter("parent_id","is","null").execute().data
-        response = client.table('automation').select('*').eq("id",9).single().execute()
-        searchAttributes = []
-        aiAttributes = []
-        for x in automationFields:
-            attribute = x.get('special_field')
-            if not attribute: 
-                attribute = x.get('attribute_name')
-            if not attribute: continue
-            if x['is_search_term'] == False:
-                aiAttributes.append(attribute)
-            else:
-                searchAttributes.append(attribute)
-        aiVal = ''
-        for j in aiAttributes:
-            temp = findValueCustomFields(products[0].get('custom_fields',[]),j)
-            if j == 'title' or j == 'Title': continue
-            if(temp == ''): continue
-            aiVal =f'{aiVal} {j}: {temp} \n'
-        print(aiVal)
+        categories = client.table('categories').select('id, title, parent_id').eq('org_id',16).execute().data
+        cs = getCategoryStructure(categories)
+        print(cs)
     except Exception as e:
         print(e)

@@ -39,6 +39,47 @@ if ssl_options:
         broker_connection_retry_on_startup=True
     )
 
+@celery.task
+def process_category_task(categories, attributes, productData, automationJobId, useImage):
+    customFields = productData.get('custom_fields',[])
+    productName = productData.get('title',"")
+    product_id = productData.get('id', "")
+    attributeList = ''
+    for j in attributes:
+        if j == 'title' or j == 'Title': continue
+        temp = findValueCustomFields(customFields,j)
+        if(temp == ''): continue
+        attributeList =f'{attributeList} {j}: {temp} \n'
+    content_processor = GPTAnswer()
+    template = content_processor.get_template_category(productName,categories,attributeList)
+    assetUrl = None
+    if useImage == True:
+        assetUrl = getURLLink(product_id)
+    try:
+        ai_message_obj = content_processor.get_answer(template,assetUrl)
+        answer = ai_message_obj.content
+        answer = clean_json_string(answer.strip())
+        logging.info(answer)
+        response = {
+            'job_id': automationJobId,
+            'product_id': product_id,
+            'answer': json.loads(answer),
+            'failure' : False
+        }
+        return response
+    except Exception as e:
+         response = {
+                'job_id': automationJobId,   
+                'product_id': product_id,
+                'answer': {},
+                'failure' : True,
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
+            }
+         return response
+
+@task_postrun.connect(sender=process_category_task)
+def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
+    logging.info("print")
 
 @celery.task
 def process_query_task(productData,automationData):
@@ -124,7 +165,8 @@ def process_query_task(productData,automationData):
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        ai_message_obj = content_processor.get_answer(prompt, formatted_relevant_docs, output_language, profile,assetUrl,aiVal, query)
+        summary_template = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, output_language, profile, aiVal, query)
+        ai_message_obj = content_processor.get_answer(summary_template,assetUrl)
         answer = ai_message_obj.content
         answer = clean_json_string(answer.strip())
         end = time.time()
