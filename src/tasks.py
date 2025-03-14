@@ -92,9 +92,11 @@ def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=N
             client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
         else:
             data = {
-                'answer':"",
+                'answer':{'name':""},
+                'debugInfo': ""
             }
-            data['answer'] = retval['answer']
+            data['answer']['name'] = retval['answer']['name']
+            data['debugInfo'] = retval['answer']
             client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
