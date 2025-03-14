@@ -69,7 +69,7 @@ template_category: |
     - If unsure, assign a more general category:
         * If you are uncertain about which category is most appropriate, you are allowed to assign the product to a more general category.
     - If still unsure, do not assign any category:
-        * If you cannot find a suitable category for the product, do not assign any category. In this case, return answer_id as -1 and answer_path as an empty string "".
+        * If you cannot find a suitable category for the product, do not assign any category. In this case, return answer_id as -1, name and answer_path as an empty string "".
 
   **Image Analysis**:
   - If a image is attached to this prompt, analyze the image and use it to enhance your response.  
@@ -78,7 +78,7 @@ template_category: |
   **Output Format:
   Your final response must be a JSON object structured as follows:
   
-    "name": //Name of the category you assigned to it, dont include the id in the name
+    "name": //Name of the category you assigned to it, dont include the id in the name, use only the most subcategory, dont include the previos path
     "answer_id": //ID of the category you assigned to it
     "answer_path": //The path to the subcategory, ex: "category 1 > sub 1 > subsub 2"
   

@@ -79,7 +79,6 @@ def process_category_task(categories, attributes, productData, automationJobId, 
 
 @task_postrun.connect(sender=process_category_task)
 def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=None,**kwargs):
-    print("Postrun reached")
     aID = args[3] 
     product_id = args[2].get('id',"")
     print(f'Postrun reached by {product_id}')
