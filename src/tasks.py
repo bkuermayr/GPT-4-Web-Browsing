@@ -78,8 +78,27 @@ def process_category_task(categories, attributes, productData, automationJobId, 
          return response
 
 @task_postrun.connect(sender=process_category_task)
-def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
-    logging.info("print")
+def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=None,**kwargs):
+    print("Postrun reached")
+    aID = args[3] 
+    product_id = args[2].get('id',"")
+    print(f'Postrun reached by {product_id}')
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        if success == False:
+            data = {
+                'failureReason': retval['reason']
+            }
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
+        else:
+            data = {
+                'answer':"",
+            }
+            data['answer'] = retval['answer']
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
+    else:
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
+    client.rpc("increment_processed_products", {'job_id': aID}).execute()
 
 @celery.task
 def process_query_task(productData,automationData):

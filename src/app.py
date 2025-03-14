@@ -66,7 +66,7 @@ def trigger_process_csv_feed():
 def assignCategory():
     data = request.get_json()
     job_id = data.get('job_id','')
-    products_ids = data.get('prdodut_ids', [])
+    products_ids = data.get('product_ids', [])
     try:
         automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
         autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data

@@ -77,10 +77,11 @@ template_category: |
 
   **Output Format:
   Your final response must be a JSON object structured as follows:
-  {
-    "answer_id": //ID of the attribute you assigned to it
-    "answer_path": //The path to the subcategy, ex: "category 1 > sub 1 > subsub 2"
-  }
+  
+    "name": //Name of the category you assigned to it, dont include the id in the name
+    "answer_id": //ID of the category you assigned to it
+    "answer_path": //The path to the subcategory, ex: "category 1 > sub 1 > subsub 2"
+  
   If you have not assigned a category, set the answer_id to -1 and the answer_path to a empty string.
 
   Product: {product_name}
