@@ -88,7 +88,7 @@ def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=N
             data = {
                 'failureReason': retval['reason']
             }
-            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
+            client.table('automation_job_data').insert({'product_id':product_id,'is_prepared_step':True,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
         else:
             data = {
                 'answer':{'category':""},
@@ -96,7 +96,10 @@ def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=N
             }
             data['answer']['category'] = retval['answer']['name']
             data['debugInfo'] = retval['answer']
-            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
+            
+            if data['debugInfo'].get('answer_id',-1) == -1:
+                success = False
+            client.table('automation_job_data').insert({'product_id':product_id,'is_prepared_step':True,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'is_prepared_step':True,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
     client.rpc("increment_processed_products", {'job_id': aID, "updatedstatus": "completed categorization"}).execute()

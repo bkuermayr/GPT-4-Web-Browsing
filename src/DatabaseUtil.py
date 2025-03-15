@@ -39,6 +39,7 @@ def clean_tree(node):
 
 def findValueCustomFields(customFields, name):
     output = ''
+    if customFields == None: return output
     for x in customFields:
         #print(x.__str__())
         if(x.get('name','') == name):
