@@ -99,6 +99,15 @@ class GPTAnswer:
         profile = "You are a helpful data extraction assistant." if not profile else profile
         summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
         return summary_prompt
+    
+    def get_template_attribute_parent(self, product_name, input_attributes, output_attributes):
+        template = self.config["template_attribute_parent"]
+        prompt_template = PromptTemplate(
+            input_variables=["product_name", "input_attributes", "output_attributes"],
+            template=template
+        )
+        summary_prompt = prompt_template.format(product_name=product_name, input_attributes=input_attributes, output_attributes=output_attributes)
+        return summary_prompt
         
 
 # Example usage

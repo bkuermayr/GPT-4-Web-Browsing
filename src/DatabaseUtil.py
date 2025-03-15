@@ -6,9 +6,38 @@ key = os.getenv("SUPABASE_KEY")
 client = create_client(url,key)
 assetUrl = 'https://oarreivvqvbvowbekecs.supabase.co/storage/v1/object/public/assets/'
 
-from collections import defaultdict
-import json
+def getAttributesWithCategoriesAndValues(attribute_ids):
+    attributes = client.table('attributes_categories_view_automation').select('*').in_("attributeid",attribute_ids).execute().data
+    return attributes
 
+def seperateInputField(combinedData, criteria):
+    criteria_map = {row["attribute_id"]: row["is_input_field"] for row in criteria}
+    
+    # Initialize input and output lists
+    input_data = []
+    output_data = []
+    
+    # Iterate through combinedData and split based on criteria
+    for row in combinedData:
+        attribute_id = row["attributeid"]
+        
+        if criteria_map.get(attribute_id, False):  # Default to False if not found
+            input_data.append(row.get("attributename", ""))
+        else:
+            output_data.append(row)
+    
+    return input_data, output_data
+
+def convertFromFieldKeyToArray(key, map):
+    results = []
+    
+    if map == None:
+        return results
+    for x in map:
+        value = x.get(key,None)
+        if(value == None): continue
+        results.append(value)
+    return results
 
 def getCategoryStructure(categories):
     tree = {}
@@ -59,9 +88,4 @@ def getURLLink(product_id):
     return None
 
 if __name__ == '__main__':
-    try:
-        categories = client.table('categories').select('id, title, parent_id').eq('org_id',16).execute().data
-        cs = getCategoryStructure(categories)
-        print(cs)
-    except Exception as e:
-        print(e)
+    getAttributesWithCategoriesAndValues([1241,83])

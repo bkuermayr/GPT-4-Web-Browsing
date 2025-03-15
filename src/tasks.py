@@ -40,6 +40,42 @@ if ssl_options:
     )
 
 @celery.task
+def process_extraction_parent_task(inputFields, outputFields, productData, automationJobId, useImage):
+    customFields = productData.get('custom_fields',[])
+    productName = productData.get('title',"")
+    product_id = productData.get('id', "")
+    product_categories = productData.get('category_ids', [])
+    contextInput = getInputAttributesContext(inputFields, customFields)
+    categoryOutputFields = removeNonCategoryFields(outputFields,product_categories)
+    output_attributes = createOutputStructure(categoryOutputFields)
+    content_processor = GPTAnswer()
+    template = content_processor.get_template_attribute_parent(productName,contextInput,output_attributes)
+    assetUrl = None
+    if useImage == True:
+        assetUrl = getURLLink(product_id)
+    try:
+        ai_message_obj = content_processor.get_answer(template,assetUrl)
+        answer = ai_message_obj.content
+        answer = clean_json_string(answer.strip())
+        logging.info(answer)
+        response = {
+            'job_id': automationJobId,
+            'product_id': product_id,
+            'answer': json.loads(answer),
+            'failure' : False
+        }
+        return response
+    except Exception as e:
+         response = {
+                'job_id': automationJobId,   
+                'product_id': product_id,
+                'answer': {},
+                'failure' : True,
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
+            }
+         return response
+
+@celery.task
 def process_category_task(categories, attributes, productData, automationJobId, useImage):
     customFields = productData.get('custom_fields',[])
     productName = productData.get('title',"")
@@ -288,6 +324,38 @@ def flatten_nested(data, parent_key=''):
     
     return dict(items)
 
+def getInputAttributesContext(inputFields, customFields):
+    contextInput = ''
+    for j in inputFields:
+        if j == 'title' or j == 'Title': continue
+        temp = findValueCustomFields(customFields,j)
+        if(temp == ''): continue
+        contextInput =f'{contextInput} {j}: {temp} \n'
+    return contextInput
+
+def getOutputReq(outputFields):
+    return outputFields
+
+def removeNonCategoryFields(outputFields, categoriesIds):
+    if(not categoriesIds): return outputFields
+    categoriesIds = set(map(int, categoriesIds))
+    
+    # Filter out fields that don't match category IDs
+    return [field for field in outputFields if any(int(cat) in categoriesIds for cat in field["categories"])]
+
+
+def createOutputStructure(outputFields):
+    output_structure = []
+    
+    for field in outputFields:
+        entry = {"name": field["attributename"], "type": field["attributetype"]}
+        
+        if field["allowedvalues"]:
+            entry["domain"] = field["allowedvalues"]
+        
+        output_structure.append(entry)
+    
+    return output_structure
 
 def flatten_answer(data):
     if "answer" in data and isinstance(data["answer"], dict):
