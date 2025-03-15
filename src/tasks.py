@@ -99,7 +99,7 @@ def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=N
             client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
-    client.rpc("increment_processed_products", {'job_id': aID}).execute()
+    client.rpc("increment_processed_products", {'job_id': aID, "updatedstatus": "completed categorization"}).execute()
 
 @celery.task
 def process_query_task(productData,automationData):
