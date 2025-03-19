@@ -435,7 +435,10 @@ def removeNonCategoryFields(outputFields, categoriesIds):
     categoriesIds = set(map(int, categoriesIds))
     
     # Filter out fields that don't match category IDs
-    return [field for field in outputFields if any(int(cat) in categoriesIds for cat in field["categories"])]
+    return [
+        field for field in outputFields 
+        if not field["categories"] or any(int(cat) in categoriesIds for cat in field["categories"])
+    ]
 
 
 def createOutputStructure(outputFields):
@@ -457,47 +460,7 @@ def flatten_answer(data):
     return {}
 
 if __name__ == "__main__":
-    test = '''{
-  "answer": {
-    "Merkmale": [
-      "14-Wege-Top: Organisiert Ihre Schläger und verhindert ein Rütteln während der Fahrt.",
-      "Wetterbeständiges Material: Schützt Ihre Ausrüstung mit einer matten PU-Lederhülle vor den Elementen.",
-      "Geräumige Aufbewahrung: Bietet ausreichend Platz für alle wichtigen Utensilien mit insgesamt 11 Fächern.",
-      "Integrierte Kühlfach: Hält Ihre Getränke an warmen Tagen kühl und bereit für den Genuss."
-    ],
-    "Attribute": {
-      "Farbe": "Schwarz",
-      "Material": "Polyester",
-      "Anzahl der Fächer": "11",
-      "Anzahl der Trennwände": "15"
-    },
-    "Fliesstext": "Der TaylorMade Signature Cart Golf Bag ist die perfekte Wahl für Golfer, die Wert auf Stil und Funktionalität legen. Mit einem 14-Wege-Top sorgt dieser Golfbag dafür, dass Ihre Schläger sicher und ordentlich verstaut sind, während das wetterbeständige PU-Leder Ihre Ausrüstung vor Regen und Feuchtigkeit schützt. Die 11 Fächer bieten ausreichend Platz für alles, was Sie auf dem Golfplatz benötigen, einschließlich eines speziellen Kühlfachs für Ihre Getränke. Ideal für sowohl Freizeit- als auch Turnierspieler, die eine komfortable und organisierte Runde genießen möchten. Entdecken Sie jetzt die Vorteile des TaylorMade Signature Cart Golf Bags und machen Sie Ihr Golfspiel noch angenehmer!"
-  },
-  "references": [
-    {
-      "url": "https://www.amazon.com/TaylorMade-Signature-Cart-Golf-Bag/dp/B0D39YRZ4F",
-      "extracted_text": "14-way top: Keep your clubs unrattled while you cruise the fairways. Weather-resistant material: Protect your bag with a weather-resistant matte PU leather shell. Spacious storage: Store your most prized possessions securely with 11 pockets."
-    },
-    {
-      "url": "https://golfparadise.net.au/products/taylormade-tm24-signature-cart-bag?srsltid=AfmBOopPiX8cRQZIwrcmZcka7LIzqFVZ8cARsZUvwFXDySj9rcmVuNhw",
-      "extracted_text": "Ride in comfort with the Signature Cart Bag, which includes a 14-way top that keeps your clubs unrattled while you cruise the fairways. A weather-resistant matte PU leather shell ensures that your belongings stay dry and protected from the elements."
-    }
-  ],
-  "emptyWebResults": false
-}'''
-    test2 = json.loads(clean_json_string(test.strip()))
-    test2['answer']=flatten_answer(test2)
-    print(test2)
-    '''
-    subtasks = []
-    products = ['1/4 Zip Fleece Pulover','505U Premium HE RH #3 S (GDI IZ 95)','2-Ball Ten Triple-Track Putter','Adicross Beyond 18 Slim 5-Pocket Pant Carbon','2024 Adidas Season Opener Kappe','2021 ANSER 4 Putter','1/2-Sleeve Mesh Blocked Polo']
-    x = """{
-    "Name": "Jennifer Smith",
-    "Contact Number": 7867567898,
-    "Email": "jen123@gmail.com",
-    "Hobbies":["Reading", "Sketching", "Horse Riding"]
-    }"""
-    #print(json.loads(x))
-    test = json.loads(x)
-    test.pop('Name', None)
-    #print(test)'''
+    output = [{'attributename': 'Schaft Material ()', 'attributeid': 2482, 'attributetype': 'text', 'allowedvalues': [], 'categories': [1]}]
+    ids = ['28979']
+    answer = removeNonCategoryFields(output,ids)
+    print(answer)
