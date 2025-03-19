@@ -108,6 +108,18 @@ class GPTAnswer:
         )
         summary_prompt = prompt_template.format(product_name=product_name, input_attributes=input_attributes, output_attributes=output_attributes)
         return summary_prompt
+    
+    def get_template_attribute_variants(self, input, output):
+        template = self.config["template_attribute_variants"]
+        prompt_template = PromptTemplate(
+            input_variables=["input_attributes", "output_attributes"],
+            template=template
+        )
+        summary_prompt = prompt_template.format(input_attributes=input, output_attributes=output)
+        f = open("demofile2.txt", "a")
+        f.write(summary_prompt)
+        f.close()
+        return summary_prompt
         
 
 # Example usage

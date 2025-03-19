@@ -40,6 +40,45 @@ if ssl_options:
     )
 
 @celery.task
+def process_extraction_variants_task(inputFields, outputFields, parent_id, variant_ids, useImage, automation_job_id):
+    categoryId = client.table('products_with_categories').select('category_ids').eq("id", parent_id).single().execute().data['category_ids']
+    products = client.table('products').select('id,title,custom_fields').in_("id",variant_ids).execute().data
+    assetUrl = None
+    categoryOutputFields = removeNonCategoryFields(outputFields,categoryId)
+    output_attributes = createOutputStructure(categoryOutputFields)
+    input_context = {}
+    if useImage == True:
+        assetUrl = getURLLink(parent_id)
+    for x in products:
+        customFields = x.get('custom_fields',[])
+        productName = x.get('title',"")
+        product_id = x.get('id', "")
+        contextInput = getInputAttributesContext(inputFields, customFields)
+        input_context[f'{productName} ({product_id})'] = contextInput
+    content_processor = GPTAnswer()
+    template = content_processor.get_template_attribute_variants(input_context,output_attributes)
+    try:
+        ai_message_obj = content_processor.get_answer(template,assetUrl)
+        answer = ai_message_obj.content
+        answer = clean_json_string(answer.strip())
+        logging.info(answer)
+        response = {
+            'job_id': automation_job_id,
+            'answer': json.loads(answer),
+            'failure' : False
+        }
+        return response
+    except Exception as e:
+         response = {
+                'job_id': automation_job_id,   
+                'answer': {},
+                'failure' : True,
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
+            }
+         return response
+
+
+@celery.task
 def process_extraction_parent_task(inputFields, outputFields, productData, automationJobId, useImage):
     customFields = productData.get('custom_fields',[])
     productName = productData.get('title',"")

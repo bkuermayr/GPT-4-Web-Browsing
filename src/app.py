@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from celery import group
-from tasks import celery, process_extraction_parent_task
+from tasks import celery, process_extraction_parent_task, process_extraction_variants_task
 from dotenv import load_dotenv
 import os
 import ssl
@@ -112,6 +112,30 @@ def attributeExtractionParent():
     subtasks = []
     for x in products:
         subtasks.append(process_extraction_parent_task.s(inputFields,outputFields,x,job_id, autoData.get('use_first_product_image', False)))
+    job = group(subtasks)
+    task = job.apply_async()
+    task.save()
+    print(f"Task ID: {task.id}")
+    return jsonify({"task_id": task.id, "count":len(subtasks)})
+
+@app.route('/api/extractionVariants', methods=['POST'])
+def attributeExtractionVariants():
+    data = request.get_json()
+    job_id = data.get('job_id','')
+    products_ids = data.get('product_ids', {})
+    try:
+        automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
+        autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data
+        attributeJob = client.table('automation_field_attributes_view').select('attribute_id, is_input_field').eq("automation_id",automationID).execute().data
+        attributeIDs = convertFromFieldKeyToArray("attribute_id", attributeJob)
+        combined = getAttributesWithCategoriesAndValues(attributeIDs)
+        inputFields, outputFields = seperateInputField(combined, attributeJob)
+    except Exception as e:
+        print(f'Error: {e}')
+        return jsonify({'Error': True})
+    subtasks = []
+    for x in products_ids:
+        subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, products_ids[x],autoData.get('use_first_product_image', False),job_id))
     job = group(subtasks)
     task = job.apply_async()
     task.save()

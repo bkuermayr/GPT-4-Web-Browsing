@@ -89,7 +89,7 @@ template_category: |
 
 template_attribute_parent: |
   You will be provided with some attributes of the product, which are delimited by triple quotes. Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color, etc.).
-  These attributes provide valuable details about the product, and your task is to use them to to fulfill your instructions, which are listed latern on.
+  These attributes provide valuable details about the product, and your task is to use them to to fulfill your instructions, which are listed later on.
   **Input Attributes:**
   """{input_attributes}"""
 
@@ -113,15 +113,55 @@ template_attribute_parent: |
   **Output Format:
   Your final response must be a JSON object structured as follows:
 
-    "answer": [
-      //Here comes a array of the filled out output attributes. For each output attribute you only have to save the two following keys: name and assignedValue
+    "answer": 
+      //Here comes a json object of the filled out output attributes. The key is the attribute_name and the value, your assigned value
       //as an example:
-      (name: Color
-      value: Red),
+      color: Red,
+      size: XL
       ....
-    ]
+    
    
   If you have not assigned a value set it to an empty string or empty array [] if it is a multi-select.
 
   Product: {product_name}
+  Output Format: json-object
+
+template_attribute_variants: |
+  You will be provided with a json structure, where each first level key is a name of a product and the id, in the format variant_name (variant_id). All first level keys are variants of each other.
+  Each key then has an optional structure inside of it, which are attributes of this variant.
+  Each attribute is defined via a key-pair value, where the key is the type of attribute (price, color, etc.).
+  These attributes provide valuable details about the variant, and your task is to use them to to fulfill your instructions, which are listed later on.
+  **Variant input Attributes:**
+  """{input_attributes}"""
+
+  Furthermore, you will be provided with some output attributes. You have to fill these out. Each of these attributes has a type and can therefore even have a value domain.
+  As an example in Integers are only Integer Values allowed or in select fields only a specific answer is allowed. Therefore each of these output attributes has a domain.
+  The domain can be missing from the specification, then you have to refer it from the type (Integer => only Integer values) or if a domain is provided, you have to follow it. Some types like metric only specific the metric of the value and you have to follow that.
+  The output attributes will be listed for you as a array of json structures in the quadruple quotes. Each entry has the keys name, type and a optional key called domain which will be an array.
+  **Output Attributes:**
+  """"{output_attributes}""""
+
+  **Instructions:**
+  You are a helpful data specialist. Your task is to use the Input Attributes and the product name to fill out the Output Attributes.
+  For that you have to follow the following instructions:
+    - You have to follow the domain values of each output attribute.
+    - If you cannot assign a value(s) to the output, you are allowed to set the value to a empty string, or empty array [](this case only when the type is multi-select)
+
+  **Image Analysis**:
+  - There may be a image attached to this prompt, this image shows the parent product of all these variants and should only be used to determine what type of product you have to process.
+  - The image does not represent a variant of the inputs and therefore should not be used to determine specific output values.  
+  - If no image is available, ignore this step.   
+
+  **Output Format:
+  Your final response must be a JSON object structured as follows:
+
+    "variant_id": //Only use the variant id for the key, not the variant_name
+      //Here comes a json object of the filled out output attributes. The key is the attribute_name and the value, your assigned value
+      //as an example:
+      color: Red,
+      size: XL //These fields are only examples, the real ones are from the output attributes. If tno output_attributes where provided, then return a empty json object
+    "variant_id_2"....
+   
+  If you have not assigned a value set it to an empty string or empty array [] if it is a multi-select.
+
   Output Format: json-object
