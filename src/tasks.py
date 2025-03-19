@@ -76,6 +76,33 @@ def process_extraction_variants_task(inputFields, outputFields, parent_id, varia
                 'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
             }
          return response
+    
+@task_postrun.connect(sender=process_extraction_variants_task)
+def task_postrun_notifier_extraction_variant(state=None, retval=None, task_id=None, args=None,**kwargs):
+    aID = args[5] 
+    product_id = args[2]
+    variants_ids = args[3]  
+    inserts = []
+    print(f'Postrun reached by variations of {product_id}')
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        if success == False:
+            data = {
+                'failureReason': retval['reason']
+            }
+            for i in variants_ids:
+                inserts.append({'product_id':i,'automation_job_id':aID,'success':False,'data':data, 'error': data})
+            client.table('automation_job_data').insert(inserts).execute()
+        else:
+            data = retval['answer']
+            for i in variants_ids:
+                inserts.append({'product_id':i,'automation_job_id':aID,'success':success,'data':data[f'{i}']})
+            client.table('automation_job_data').insert(inserts).execute()
+    else:
+        for i in variants_ids:
+                inserts.append({'product_id':i,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()})
+        client.table('automation_job_data').insert(inserts).execute()
+    client.rpc("increment_processed_products", {'job_id': aID}).execute()
 
 
 @celery.task
@@ -113,6 +140,30 @@ def process_extraction_parent_task(inputFields, outputFields, productData, autom
                 'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
             }
          return response
+
+
+@task_postrun.connect(sender=process_extraction_parent_task)
+def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=None,**kwargs):
+    aID = args[3] 
+    product_id = args[2].get('id',"")
+    print(f'Postrun reached by {product_id}')
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        if success == False:
+            data = {
+                'failureReason': retval['reason']
+            }
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
+        else:
+            data = {
+                'answer':{},
+            }
+            data['answer'] = retval['answer']
+            client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
+    else:
+        client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
+    client.rpc("increment_processed_products", {'job_id': aID}).execute()
+
 
 @celery.task
 def process_category_task(categories, attributes, productData, automationJobId, useImage):
