@@ -116,9 +116,6 @@ class GPTAnswer:
             template=template
         )
         summary_prompt = prompt_template.format(input_attributes=input, output_attributes=output)
-        f = open("demofile2.txt", "a")
-        f.write(summary_prompt)
-        f.close()
         return summary_prompt
         
 
