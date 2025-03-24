@@ -147,7 +147,7 @@ def process_extraction_parent_task(inputFields, outputFields, productData, autom
 
 
 @task_postrun.connect(sender=process_extraction_parent_task)
-def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=None,**kwargs):
+def task_postrun_notifier_extraction_parent(state=None, retval=None, task_id=None, args=None,**kwargs):
     aID = args[3] 
     product_id = args[2].get('id',"")
     print(f'Postrun reached by {product_id}')
@@ -159,10 +159,7 @@ def task_postrun_notifier_category(state=None, retval=None, task_id=None, args=N
             }
             client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':data, 'error': data}).execute()
         else:
-            data = {
-                'answer':{},
-            }
-            data['answer'] = retval['answer']
+            data = retval['answer']
             client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':success,'data':data}).execute()
     else:
         client.table('automation_job_data').insert({'product_id':product_id,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
