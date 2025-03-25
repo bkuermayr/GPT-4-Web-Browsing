@@ -118,6 +118,9 @@ def attributeExtractionParent():
     print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
+def split_array(arr, max_size=140):
+    return [arr[i:i + max_size] for i in range(0, len(arr), max_size)]
+
 @app.route('/api/extractionVariants', methods=['POST'])
 def attributeExtractionVariants():
     data = request.get_json()
@@ -135,7 +138,13 @@ def attributeExtractionVariants():
         return jsonify({'Error': True})
     subtasks = []
     for x in products_ids:
-        subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, products_ids[x],autoData.get('use_first_product_image', False),job_id))
+        variant_ids = products_ids[x]
+        if len(variant_ids) >= 50:
+            new_variant_ids = split_array(variant_ids,50)
+            for smaller in new_variant_ids:
+                subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, smaller,autoData.get('use_first_product_image', False),job_id))
+        else :
+            subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, products_ids[x],autoData.get('use_first_product_image', False),job_id))
     job = group(subtasks)
     task = job.apply_async()
     task.save()
