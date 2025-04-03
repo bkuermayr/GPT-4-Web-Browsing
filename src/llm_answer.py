@@ -1,7 +1,10 @@
+import re
 import time
 import os
+import unicodedata
 import yaml
 from fetch_web_content import WebContentFetcher
+from output_classes import GenerativeTextOutput, CategoryOutput, AttributeParentOutput, AttributeVariantOutput
 from retrieval import EmbeddingRetriever
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -61,10 +64,10 @@ class GPTAnswer:
                 rearranged_index_list.append(index_dict[index])
         return rearranged_index_list
 
-    def get_answer(self, prompt, image_url=None):
+    def get_answer(self, prompt, structure, image_url=None, use_web_search=False):
         # Create an instance of ChatOpenAI and generate an answer
-        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, temperature=0.0, streaming=False, callbacks=[StreamingStdOutCallbackHandler()], model_kwargs={"response_format": {"type": "json_object"}})
-        
+        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, streaming=False, use_responses_api=True)
+        llm = llm.with_structured_output(schema=structure)
         message = [{"type": "text", "text": prompt}]
         imageMessage = [{"type": "text", "text": prompt}]
         if image_url and validators.url(image_url):
@@ -72,12 +75,15 @@ class GPTAnswer:
                 "type": "image_url",
                 "image_url": {"url":image_url}
             })
+        tools = []
+        #if use_web_search:
+        #   tools.append({"type": "web_search_preview"})
         try:
-            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)])
+            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)], tools=tools)
             return gpt_answer
         except Exception as e:
             logging.info(f"Image not accessible for AI: {image_url}")
-            gpt_answer = llm.invoke([HumanMessage(content=message)])
+            gpt_answer = llm.invoke([HumanMessage(content=message)], tools=tools)
             return gpt_answer
 
     def get_template_category(self, product_name, categories, attributes):
@@ -87,9 +93,9 @@ class GPTAnswer:
             template=template
         )
         summary_prompt = prompt_template.format(product_name=product_name, categories=categories, attributes=attributes)
-        return summary_prompt
+        return summary_prompt, CategoryOutput
     
-    def get_template_generativeText(self, query, relevant_docs, language, profile, attributes = "", product_name = ""):
+    def get_template_generativeText(self, query, web_sources, language, profile, attributes = "", product_name = ""):
         template = self.config["template"]
         prompt_template = PromptTemplate(
             input_variables=["profile", "context_str", "language", "query","context_attributes", "product_name"],
@@ -97,8 +103,8 @@ class GPTAnswer:
         )
 
         profile = "You are a helpful data extraction assistant." if not profile else profile
-        summary_prompt = prompt_template.format(context_str=relevant_docs, language=language, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
-        return summary_prompt
+        summary_prompt = prompt_template.format(language=language, context_str=web_sources, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
+        return summary_prompt, GenerativeTextOutput
     
     def get_template_attribute_parent(self, product_name, input_attributes, output_attributes):
         template = self.config["template_attribute_parent"]
@@ -107,7 +113,7 @@ class GPTAnswer:
             template=template
         )
         summary_prompt = prompt_template.format(product_name=product_name, input_attributes=input_attributes, output_attributes=output_attributes)
-        return summary_prompt
+        return summary_prompt, AttributeParentOutput
     
     def get_template_attribute_variants(self, input, output):
         template = self.config["template_attribute_variants"]
@@ -116,8 +122,34 @@ class GPTAnswer:
             template=template
         )
         summary_prompt = prompt_template.format(input_attributes=input, output_attributes=output)
-        return summary_prompt
+        return summary_prompt, AttributeVariantOutput
         
+
+def clean_text(text):
+    """Cleans a single text string by removing annotations, fixing Unicode errors, and normalizing spaces."""
+    text = text.encode('utf-8', errors='ignore').decode('utf-8', errors="ignore")
+    text = unicodedata.normalize("NFC", text)
+    # Decode any incorrectly encoded Unicode escape sequences
+
+    # Remove URLs and text inside parentheses/brackets (annotations)
+    text = re.sub(r'\(.*?\)|\[.*?\]', '', text)
+
+    # Remove non-printable control characters
+    text = re.sub(r'[\u0000-\u001F\u007F-\u009F]', ' ', text)
+
+    # Remove excessive whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+
+def clean_data(data):
+    """Cleans text input whether it's a string or a dictionary with string values."""
+    if isinstance(data, str):
+        return clean_text(data)
+    elif isinstance(data, dict):
+        return {key: clean_text(value) for key, value in data.items() if isinstance(value, str)}
+    else:
+        return {}
 
 # Example usage
 if __name__ == "__main__":
@@ -144,15 +176,15 @@ eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbesch
     except Exception as e:
         print("Exception while retrieving embeddings: ", e)
     formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
-    # print(formatted_relevant_docs)
+    # print(formatted_relevant_docs)'''
 
     # Measure the time taken to get an answer from the GPT model
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    summary = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, 'german', profile, attributeList, query)
-    ai_message_obj = content_processor.get_answer(summary, None)
-    answer = ai_message_obj.content + '\n'
+    summary, scheme = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, 'german', profile, attributeList, query)
+    ai_message_obj = content_processor.get_answer(summary, scheme)
+    answer = ai_message_obj
     print(answer)
     end = time.time()
     print("\n\nGPT Answer time:", end - start, "s")

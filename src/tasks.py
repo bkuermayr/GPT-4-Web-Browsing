@@ -10,7 +10,7 @@ from celery.signals import task_postrun
 
 import json
 from fetch_web_content import WebContentFetcher
-from llm_answer import GPTAnswer
+from llm_answer import GPTAnswer, clean_data
 from locate_reference import ReferenceLocator
 from retrieval import EmbeddingRetriever
 from csv_postprocessor import process_data
@@ -56,15 +56,14 @@ def process_extraction_variants_task(inputFields, outputFields, parent_id, varia
         contextInput = getInputAttributesContext(inputFields, customFields)
         input_context[f'{productName} ({product_id})'] = contextInput
     content_processor = GPTAnswer()
-    template = content_processor.get_template_attribute_variants(input_context,output_attributes)
+    template, scheme = content_processor.get_template_attribute_variants(input_context,output_attributes)
     try:
-        ai_message_obj = content_processor.get_answer(template,assetUrl)
-        answer = ai_message_obj.content
-        answer = clean_json_string(answer.strip())
+        ai_message_obj = content_processor.get_answer(template, scheme, assetUrl, False)
+        answer = ai_message_obj
         logging.info(answer)
         response = {
             'job_id': automation_job_id,
-            'answer': json.loads(answer),
+            'answer': answer,
             'failure' : False
         }
         return response
@@ -119,19 +118,18 @@ def process_extraction_parent_task(inputFields, outputFields, productData, autom
     categoryOutputFields = removeNonCategoryFields(outputFields,product_categories)
     output_attributes = createOutputStructure(categoryOutputFields)
     content_processor = GPTAnswer()
-    template = content_processor.get_template_attribute_parent(productName,contextInput,output_attributes)
+    template, scheme = content_processor.get_template_attribute_parent(productName,contextInput,output_attributes)
     assetUrl = None
     if useImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        ai_message_obj = content_processor.get_answer(template,assetUrl)
-        answer = ai_message_obj.content
-        answer = clean_json_string(answer.strip())
+        ai_message_obj = content_processor.get_answer(template, scheme, assetUrl, False)
+        answer = ai_message_obj
         logging.info(answer)
         response = {
             'job_id': automationJobId,
             'product_id': product_id,
-            'answer': json.loads(answer),
+            'answer': answer,
             'failure' : False
         }
         return response
@@ -178,19 +176,18 @@ def process_category_task(categories, attributes, productData, automationJobId, 
         if(temp == ''): continue
         attributeList =f'{attributeList} {j}: {temp} \n'
     content_processor = GPTAnswer()
-    template = content_processor.get_template_category(productName,categories,attributeList)
+    template, scheme = content_processor.get_template_category(productName,categories,attributeList)
     assetUrl = None
     if useImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        ai_message_obj = content_processor.get_answer(template,assetUrl)
-        answer = ai_message_obj.content
-        answer = clean_json_string(answer.strip())
+        ai_message_obj = content_processor.get_answer(template, scheme, assetUrl, False)
+        answer = ai_message_obj
         logging.info(answer)
         response = {
             'job_id': automationJobId,
             'product_id': product_id,
-            'answer': json.loads(answer),
+            'answer': answer,
             'failure' : False
         }
         return response
@@ -315,17 +312,16 @@ def process_query_task(productData,automationData):
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        summary_template = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, output_language, profile, aiVal, query)
-        ai_message_obj = content_processor.get_answer(summary_template,assetUrl)
-        answer = ai_message_obj.content
-        answer = clean_json_string(answer.strip())
+        summary_template, scheme = content_processor.get_template_generativeText(prompt, relevant_docs_list, output_language, profile, aiVal, query)
+        ai_message_obj = content_processor.get_answer(summary_template, scheme, assetUrl, use_web_search)
+        answer = ai_message_obj
         end = time.time()
         logging.info(f'Generated answer in {end - start} seconds')
         response = {
         'query': query,
         'job_id': job_id,
         'product_id': product_id,
-        'answer': json.loads(answer),
+        'answer': answer,
         'gpt_answer_time': end - start,
         'output_language': output_language,
         'failure' : False
@@ -452,8 +448,11 @@ def createOutputStructure(outputFields):
     return output_structure
 
 def flatten_answer(data):
-    if "answer" in data and isinstance(data["answer"], dict):
-        return flatten_nested(data["answer"])
+    if "answer" in data:
+        if isinstance(data["answer"], dict):
+            return flatten_nested(data["answer"])
+        else:
+            return {"answer": data["answer"]}
     return {}
 
 if __name__ == "__main__":
