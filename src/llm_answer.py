@@ -66,7 +66,7 @@ class GPTAnswer:
 
     def get_answer(self, prompt, structure, image_url=None, use_web_search=False):
         # Create an instance of ChatOpenAI and generate an answer
-        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, streaming=False, use_responses_api=True)
+        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, streaming=False)
         llm = llm.with_structured_output(schema=structure)
         message = [{"type": "text", "text": prompt}]
         imageMessage = [{"type": "text", "text": prompt}]
