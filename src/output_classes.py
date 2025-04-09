@@ -16,12 +16,12 @@ class GenerativeTextOutput(TypedDict):
     references: List[References] = Field(description="References that were used to generate the answers")
 
 class CategoryOutput(TypedDict):
-    name: str = Field(description="Name of the category you assigned to it, dont include the id in the name, use only the most subcategory, dont include the previos path")
+    name: str = Field(description="Name of the category you assigned to it, dont include the id in the name, use only the most subcategory, dont include the previous path")
     answer_id: int = Field(description="ID of the category you assigned to it")
     answer_path: str = Field(description="The path to the subcategory, ex: category 1 > sub 1 > subsub 2, only use names of the categories and dont include the id")
 
 class AttributeVariantOutput(TypedDict):
-    answer: Dict[str, Any] = Field(description="Test")
+    answer: Dict[str, Any] = Field()
 
 class AttributeParentOutput(TypedDict):
     answer: Dict[str, Any] = Field(description="Here comes a json object of the filled out output attributes. The key is the attribute_name and the value, your assigned value")

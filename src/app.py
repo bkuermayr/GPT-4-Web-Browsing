@@ -6,8 +6,6 @@ import os
 import ssl
 from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
-import sys
-sys.modules['sounddevice'] = None
 
 from tasks import process_query_task, process_csv_feed, process_category_task
 from DatabaseUtil import client, convertFromFieldKeyToArray, getAttributesWithCategoriesAndValues, getCategoryStructure, seperateInputField
