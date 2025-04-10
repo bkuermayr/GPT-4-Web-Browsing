@@ -194,6 +194,7 @@ def process_category_task(categories, attributes, productData, automationJobId, 
         }
         return response
     except Exception as e:
+         logging.error(e.with_traceback())
          response = {
                 'job_id': automationJobId,   
                 'product_id': product_id,
