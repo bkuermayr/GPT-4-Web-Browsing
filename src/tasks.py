@@ -68,7 +68,7 @@ def process_extraction_variants_task(inputFields, outputFields, parent_id, varia
         }
         return response
     except Exception as e:
-         logging.error(e.with_traceback())
+         logging.error(e)
          response = {
                 'job_id': automation_job_id,   
                 'answer': {},
@@ -194,7 +194,7 @@ def process_category_task(categories, attributes, productData, automationJobId, 
         }
         return response
     except Exception as e:
-         logging.error(e.with_traceback())
+         logging.error(e)
          response = {
                 'job_id': automationJobId,   
                 'product_id': product_id,

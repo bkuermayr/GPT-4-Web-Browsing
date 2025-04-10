@@ -3,6 +3,7 @@ import time
 import os
 import unicodedata
 import yaml
+from DatabaseUtil import getCategoryStructure, client
 from fetch_web_content import WebContentFetcher
 from output_classes import GenerativeTextOutput, CategoryOutput, AttributeParentOutput, AttributeVariantOutput
 from retrieval import EmbeddingRetriever
@@ -66,7 +67,7 @@ class GPTAnswer:
 
     def get_answer(self, prompt, structure, image_url=None, use_web_search=False):
         # Create an instance of ChatOpenAI and generate an answer
-        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, streaming=False)
+        llm = ChatOpenAI(model_name=self.model_name, openai_api_key=self.api_key, streaming=False, temperature=0.2)
         llm = llm.with_structured_output(schema=structure)
         message = [{"type": "text", "text": prompt}]
         imageMessage = [{"type": "text", "text": prompt}]
@@ -79,11 +80,11 @@ class GPTAnswer:
         #if use_web_search:
         #   tools.append({"type": "web_search_preview"})
         try:
-            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)], tools=tools)
+            gpt_answer = llm.invoke([HumanMessage(content=imageMessage)])
             return gpt_answer
         except Exception as e:
             logging.info(f"Image not accessible for AI: {image_url}")
-            gpt_answer = llm.invoke([HumanMessage(content=message)], tools=tools)
+            gpt_answer = llm.invoke([HumanMessage(content=message)])
             return gpt_answer
 
     def get_template_category(self, product_name, categories, attributes):
@@ -156,33 +157,22 @@ if __name__ == "__main__":
     content_processor = GPTAnswer()
     query = "Sunbrella Schirm"
     attributeList = "Material:96% Polyamid, 4% Elasthan \n Grössen:34, 36, 38, 40, 42, 44 \n Farbe: Gestreift (gemustert)\n Passform: Regular Fit"
-    prompt = '''Schreibe eine Beschreibung, dabei soll diese aus drei Teilen bestehen: 
+    prompt = '''
+    Schreibe eine Beschreibung, dabei soll diese aus drei Teilen bestehen: 
 Attribute: Dieser Punkt darf nur mit dir übergebenen attributes aus der attributes list befüllt werden (wenn du keine bekommen hast, dann gib einen leeren Text für diesen Punkt zurück), gelistet als key-value pairs
 Merkmale: Minimal drei Merkmale, maximal acht. Diese sollen wichtige Merkmale des Produktes sein, also Punkte die ihm speziell machen. 
 Fliesstext: Circa 100-200 Wörter. Inkludiere die wichtigsten Feature und Benefits, sowie
 eine kurze Erläuterung für wen das Produkt geeignet ist. Ende den Produktbeschreib immer mit einem “Call to Action”. Achte bei der gesamter Produktbeschreibung auf die Benutzung von relevanten Keywords, um SEO zu vereinfachen.Wenn die Antworten formatiert sind, benutzte HTML Formatierung'''
-    output_format = "" # User can specify output format
-    profile = "" # User can define the role for LLM
-
-    # Fetch web content based on the query
-    web_contents_fetcher = WebContentFetcher(query)
-    web_contents, serper_response = web_contents_fetcher.fetch()
-
-    # Retrieve relevant documents using embeddings
-    retriever = EmbeddingRetriever()
-
-    try:
-        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], prompt, 7952244, 7 )
-    except Exception as e:
-        print("Exception while retrieving embeddings: ", e)
-    formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
-    # print(formatted_relevant_docs)'''
 
     # Measure the time taken to get an answer from the GPT model
     start = time.time()
 
     # Generate answer from ChatOpenAI
-    summary, scheme = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, 'german', profile, attributeList, query)
+    categories = client.table('categories').select('id, title, parent_id').eq('org_id',41).execute().data
+    cs = getCategoryStructure(categories)
+    summary, scheme = content_processor.get_template_category(query,cs, attributeList)
+    #print(summary)
+    #print(scheme)
     ai_message_obj = content_processor.get_answer(summary, scheme)
     answer = ai_message_obj
     print(answer)
