@@ -68,6 +68,7 @@ def process_extraction_variants_task(inputFields, outputFields, parent_id, varia
         }
         return response
     except Exception as e:
+         logging.error(e.with_traceback())
          response = {
                 'job_id': automation_job_id,   
                 'answer': {},

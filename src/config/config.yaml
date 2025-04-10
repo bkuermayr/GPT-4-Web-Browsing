@@ -82,7 +82,7 @@ template_category: |
     "answer_id": //ID of the category you assigned to it
     "answer_path": //The path to the subcategory, ex: "category 1 > sub 1 > subsub 2", only use names of the categories and dont include the id
   
-  If you have not assigned a category, set the answer_id to -1 and the answer_path to a empty string.
+  If you have not assigned a category, set the answer_id to -1 and the name and answer_path to a empty string.
 
   Product: {product_name}
   Output Format: json-object
