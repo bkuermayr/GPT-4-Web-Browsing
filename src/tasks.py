@@ -93,7 +93,7 @@ def task_postrun_notifier_extraction_variant(state=None, retval=None, task_id=No
                 inserts.append({'product_id':i,'automation_job_id':aID,'success':False,'data':data, 'error': data})
             client.table('automation_job_data').insert(inserts).execute()
         else:
-            data = retval['answer']['answer']
+            data = retval['answer']
             print(data)
             for i in variants_ids:
                 help = {
