@@ -126,6 +126,7 @@ def attributeExtractionVariants():
     data = request.get_json()
     job_id = data.get('job_id','')
     products_ids = data.get('product_ids', {})
+    use_filled_output_attributes = data.get('use_filled_output_attributes', False)
     try:
         automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
         autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data
@@ -142,9 +143,9 @@ def attributeExtractionVariants():
         if len(variant_ids) >= 50:
             new_variant_ids = split_array(variant_ids,50)
             for smaller in new_variant_ids:
-                subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, smaller,autoData.get('use_first_product_image', False),job_id))
+                subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, smaller,autoData.get('use_first_product_image', False),job_id, use_filled_output_attributes))
         else :
-            subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, products_ids[x],autoData.get('use_first_product_image', False),job_id))
+            subtasks.append(process_extraction_variants_task.s(inputFields, outputFields,x, products_ids[x],autoData.get('use_first_product_image', False),job_id, use_filled_output_attributes))
     job = group(subtasks)
     task = job.apply_async()
     task.save()
