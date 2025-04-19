@@ -159,7 +159,7 @@ template_attribute_variants: |
       //Here comes a json object of the filled out output attributes. The key is the attribute_name and the value, your assigned value
       //as an example:
       color: Red,
-      size: XL //These fields are only examples, the real ones are from the output attributes. If tno output_attributes where provided, then return a empty json object
+      size: XL //These fields are only examples, the real ones are from the output attributes. If no output_attributes where provided, then return a empty json object
     "variant_id_2"....
    
   If you have not assigned a value set it to an empty string or empty array [] if it is a multi-select.
@@ -200,8 +200,13 @@ template_translations: |
   ---
   **Output Format (JSON Object):**
   Respond with a JSON object structured as follows:
-  { "product_id_1": { "(XX) attribute_name_1": "Translated value", "(XX) attribute_name_2": ["Translated", "Values"] }, "product_id_2": { "(XX) another_attribute": "Another translation" } }
+  "product_id_1":  
+    "(XX) attribute_name_1": "Translated value", 
+    "(XX) attribute_name_2": ["Translated", "Values"]
+  ,
+  "product_id_2":
+    "(XX) another_attribute": "Another translation"
   
-  - Replace `XX` with the ISO 639-1 language code for the target language (e.g., `DE` for German, `FR` for French).
+  - Replace `XX` with the ISO 639-1 language code for the target language (e.g.,`EN` for English, `DE` for German, `FR` for French).
   - Prefix each translated attribute with `(XX)` and retain the original attribute name.
   - Do not include extra commentary—return the JSON object only.

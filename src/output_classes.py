@@ -27,4 +27,4 @@ class AttributeParentOutput(TypedDict):
     answer: Dict[str, Any] = Field(description="Here comes a json object of the filled out output attributes. The key is the attribute_name and the value, your assigned value")
 
 class TranslationOutput(TypedDict):
-    answer: Dict[str, any] = Field()
+    answer: Dict[str, Any] = Field()

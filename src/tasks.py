@@ -42,6 +42,7 @@ if ssl_options:
 @celery.task
 def process_translation_task(inputFields, parent_data, children_data, automation, job_id):
     output_lang = automation.get('output_language')
+    context = automation.get('prompt',"")
     if not output_lang:
         return {
             'job_id': job_id,
@@ -49,14 +50,71 @@ def process_translation_task(inputFields, parent_data, children_data, automation
             'failure' : True,
             'reason' : "No Output Language provided"
         }
-    parentContext = getInputAttributesContext(inputFields, parent_data.get('custom_fields'))
-    children_context = {}
+    parentContext = getInputContext(inputFields, parent_data.get('custom_fields'))
+    inputContext = {f'{parent_data['id']}': parentContext}
     for x in children_data:
         customFields = x.get('custom_fields',[])
         product_id = x.get('id', "")
-        contextInput = getInputAttributesContext(inputFields, customFields)
-        children_context[f'{product_id}'] = contextInput
-    
+        contextInput = getInputContext(inputFields, customFields)
+        inputContext[f'{product_id}'] = contextInput
+    content_processor = GPTAnswer()
+    template, scheme = content_processor.get_template_translation(inputContext,context, output_lang)
+    logging.info(template)
+    try:
+        ai_message_obj = content_processor.get_answer(template, scheme, None, False)
+        answer = ai_message_obj
+        logging.info(answer)
+        response = {
+            'job_id': job_id,
+            'answer': answer,
+            'failure' : False
+        }
+        return response
+    except Exception as e:
+         logging.error(e)
+         response = {
+                'job_id': job_id,   
+                'answer': {},
+                'failure' : True,
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
+            }
+         return response
+
+
+@task_postrun.connect(sender=process_translation_task)
+def task_postrun_notifier_translator(state=None, retval=None, task_id=None, args=None,**kwargs):
+    aID = args[4]
+    inserts = []
+    parent = args[1]
+    children = args[2]
+    ids = []
+    ids.append(parent['id'])
+    for x in children:
+        ids.append(x['id'])
+    print(f'Postrun reached')
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        if success == False:
+            data = {
+                'failureReason': retval['reason']
+            }
+            for i in ids:
+                inserts.append({'product_id':i,'automation_job_id':aID,'success':False,'data':data, 'error': data})
+            client.table('automation_job_data').insert(inserts).execute()
+        else:
+            data = retval['answer']
+            for key in data:
+                help = {
+                    'answer': {}
+                }
+                help['answer'] = data[f'{key}']
+                inserts.append({'product_id':key,'automation_job_id':aID,'success':success,'data':help})
+            client.table('automation_job_data').insert(inserts).execute()
+    else:
+        for i in ids:
+                inserts.append({'product_id':i,'automation_job_id':aID,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()})
+        client.table('automation_job_data').insert(inserts).execute()
+    client.rpc("increment_processed_products", {'job_id': aID}).execute()   
 
 @celery.task
 def process_extraction_variants_task(inputFields, outputFields, parent_id, variant_ids, useImage, automation_job_id, use_filled_output_attributes):
@@ -444,6 +502,17 @@ def getInputAttributesContext(inputFields, customFields):
         temp = findValueCustomFields(customFields,j)
         if(temp == ''): continue
         contextInput =f'{contextInput} {j}: {temp} \n'
+    return contextInput
+
+def getInputContext(inputFields, customFields):
+    contextInput = {}
+    for j in inputFields:
+        if j.lower() == 'title':
+            continue
+        temp = findValueCustomFields(customFields, j)
+        if temp == '':
+            continue
+        contextInput[j] = temp
     return contextInput
 
 def getOutputReq(outputFields):

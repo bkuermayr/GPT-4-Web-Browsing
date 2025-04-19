@@ -72,7 +72,7 @@ def translate():
         automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
         autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data
         inputAttributes = client.table('automation_field_attributes_view').select('special_field, attribute_name').eq("automation_id",automationID).eq('is_input_field',True).execute().data
-        products = client.table('products').select('id,custom_fields,parent_id').in_("id",all_ids).filter("parent_id","is","null").execute().data
+        products = client.table('products').select('id,custom_fields,parent_id').in_("id",all_ids).execute().data
         mapped = buildParentStructure(products)
         attributeName = []
         for x in inputAttributes:
