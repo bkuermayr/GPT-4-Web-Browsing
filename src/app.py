@@ -91,9 +91,9 @@ def translate():
         children = info["children"]
         if len(children) > 50:
             for chunk in chunked(children, 50):
-                subtasks.append(process_translation_task.s(attributeName, parent_data, chunk, autoData))
+                subtasks.append(process_translation_task.s(attributeName, parent_data, chunk, autoData, job_id))
         else:
-            subtasks.append(process_translation_task.s(attributeName, parent_data, children, autoData))
+            subtasks.append(process_translation_task.s(attributeName, parent_data, children, autoData, job_id))
     job = group(subtasks)
     task = job.apply_async()
     task.save()

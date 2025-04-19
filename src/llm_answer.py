@@ -5,7 +5,7 @@ import unicodedata
 import yaml
 from DatabaseUtil import getCategoryStructure, client
 from fetch_web_content import WebContentFetcher
-from output_classes import GenerativeTextOutput, CategoryOutput, AttributeParentOutput, AttributeVariantOutput
+from output_classes import GenerativeTextOutput, CategoryOutput, AttributeParentOutput, AttributeVariantOutput, TranslationOutput
 from retrieval import EmbeddingRetriever
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -124,6 +124,15 @@ class GPTAnswer:
         )
         summary_prompt = prompt_template.format(input_attributes=input, output_attributes=output)
         return summary_prompt, AttributeVariantOutput
+    
+    def get_template_translation(self, input, context, language):
+        template = self.config["template_translations"]
+        prompt_template = PromptTemplate(
+            input_variables=["input_attributes", "context", "language"],
+            template=template
+        )
+        summary_prompt = prompt_template.format(input_attributes=input, context=context, language=language)
+        return summary_prompt, TranslationOutput
         
 
 def clean_text(text):

@@ -40,8 +40,23 @@ if ssl_options:
     )
 
 @celery.task
-def process_translation_task(inputFields, parent_data, children_data, automation):
-    print("edsad")
+def process_translation_task(inputFields, parent_data, children_data, automation, job_id):
+    output_lang = automation.get('output_language')
+    if not output_lang:
+        return {
+            'job_id': job_id,
+            'answer': {},
+            'failure' : True,
+            'reason' : "No Output Language provided"
+        }
+    parentContext = getInputAttributesContext(inputFields, parent_data.get('custom_fields'))
+    children_context = {}
+    for x in children_data:
+        customFields = x.get('custom_fields',[])
+        product_id = x.get('id', "")
+        contextInput = getInputAttributesContext(inputFields, customFields)
+        children_context[f'{product_id}'] = contextInput
+    
 
 @celery.task
 def process_extraction_variants_task(inputFields, outputFields, parent_id, variant_ids, useImage, automation_job_id, use_filled_output_attributes):

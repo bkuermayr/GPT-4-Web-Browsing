@@ -165,3 +165,43 @@ template_attribute_variants: |
   If you have not assigned a value set it to an empty string or empty array [] if it is a multi-select.
 
   Output Format: json-object
+
+template_translations: |
+  You will be provided with a JSON object, where each **top-level key** represents a **product ID**, and corresponds to a variant of a product. All top-level keys are variants of each other, and each contains optional **attributes** describing that specific variant.
+
+  Each variant's attributes are structured as key-value pairs, where:
+  - The **key** is the attribute name (e.g., color, size, material).
+  - The **value** can be a string, number, or array—depending on the data type of the attribute.
+
+  ---
+  **Input Attributes:**
+  """{input_attributes}"""
+
+  ---
+  **Context:**
+  Provided context describes the shop, brand, product type, or other relevant background information. Use it to guide accurate and domain-appropriate translations.
+  """{context}"""
+  ---
+
+  **Your Role:**
+  You are a professional **product localization specialist and translation expert**, experienced in adapting e-commerce data for international markets. Your goal is to deliver **accurate, natural-sounding translations** of all input attributes into **{language}**, tailored to the given context.
+
+  ---
+  **Instructions:**
+  1. Translate every attribute value present in the input data using the given context to ensure accuracy and relevance.
+  2. **Preserve the original structure and data types** of the input:
+     - Arrays should remain arrays (with translated items inside).
+     - Single string values must remain as strings.
+  3. If a value is **untranslatable or unclear**, you may:
+     - Set it to an empty string `""`, or
+     - Use an empty array `[]` (if the original input was an array).
+  4. Do **not** include any product in the output if it has **no translatable attributes**.
+
+  ---
+  **Output Format (JSON Object):**
+  Respond with a JSON object structured as follows:
+  { "product_id_1": { "(XX) attribute_name_1": "Translated value", "(XX) attribute_name_2": ["Translated", "Values"] }, "product_id_2": { "(XX) another_attribute": "Another translation" } }
+  
+  - Replace `XX` with the ISO 639-1 language code for the target language (e.g., `DE` for German, `FR` for French).
+  - Prefix each translated attribute with `(XX)` and retain the original attribute name.
+  - Do not include extra commentary—return the JSON object only.
