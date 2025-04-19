@@ -87,5 +87,27 @@ def getURLLink(product_id):
             return temp
     return None
 
+def buildParentStructure(products):
+    mapped_products = {}
+    for product in products:
+        pid = product['id']
+        parent_id = product.get('parent_id')
+
+        if parent_id: 
+            if parent_id not in mapped_products:
+                mapped_products[parent_id] = {"data": {}, "children": []}
+            mapped_products[parent_id]["children"].append(product)
+        else:
+            if pid not in mapped_products:
+                mapped_products[pid] = {"data": {}, "children": []}
+            mapped_products[pid]["data"] = product
+    return mapped_products
+
+
+def chunked(iterable, size):
+    """Yield successive chunks from a list."""
+    for i in range(0, len(iterable), size):
+        yield iterable[i:i + size]
+
 if __name__ == '__main__':
     getAttributesWithCategoriesAndValues([1241,83])

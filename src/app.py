@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from celery import group
-from tasks import celery, process_extraction_parent_task, process_extraction_variants_task
+from tasks import celery, process_extraction_parent_task, process_extraction_variants_task, process_translation_task
 from dotenv import load_dotenv
 import os
 import ssl
@@ -8,7 +8,7 @@ from gevent import monkey
 monkey.patch_all()  # Apply gevent monkey patches
 
 from tasks import process_query_task, process_csv_feed, process_category_task
-from DatabaseUtil import client, convertFromFieldKeyToArray, getAttributesWithCategoriesAndValues, getCategoryStructure, seperateInputField
+from DatabaseUtil import buildParentStructure, chunked, client, convertFromFieldKeyToArray, getAttributesWithCategoriesAndValues, getCategoryStructure, seperateInputField
 # Load environment variables from .env file
 load_dotenv()
 
@@ -61,6 +61,44 @@ def trigger_process_csv_feed():
     remote_directory = request.args.get('remote_directory')
     task = process_csv_feed.apply_async(args=[url, remote_directory, filename])
     return jsonify({"task_id": task.id})
+
+@app.route('/api/translate', methods=['POST'])
+def translate():
+    data = request.get_json()
+    job_id = data.get('job_id', '')
+    products_ids = data.get('product_ids', {})
+    all_ids = list(products_ids.keys()) + [vid for variants in products_ids.values() for vid in variants]
+    try:
+        automationID = client.table('automation_job').select('automation_id').eq('id',job_id).single().execute().data['automation_id']
+        autoData = client.table('automation').select('*').eq("id",automationID).single().execute().data
+        inputAttributes = client.table('automation_field_attributes_view').select('special_field, attribute_name').eq("automation_id",automationID).eq('is_input_field',True).execute().data
+        products = client.table('products').select('id,custom_fields,parent_id').in_("id",all_ids).filter("parent_id","is","null").execute().data
+        mapped = buildParentStructure(products)
+        attributeName = []
+        for x in inputAttributes:
+            attribute = x.get('special_field')
+            if not attribute: 
+                attribute = x.get('attribute_name')
+            if not attribute: continue
+            attributeName.append(attribute)
+    except Exception as e:
+        print(f'Error: {e}')
+        return jsonify({'Error':True})
+    subtasks = []
+
+    for parent_id, info in mapped.items():
+        parent_data = info["data"]
+        children = info["children"]
+        if len(children) > 50:
+            for chunk in chunked(children, 50):
+                subtasks.append(process_translation_task.s(attributeName, parent_data, chunk, autoData))
+        else:
+            subtasks.append(process_translation_task.s(attributeName, parent_data, children, autoData))
+    job = group(subtasks)
+    task = job.apply_async()
+    task.save()
+    print(f"Task ID: {task.id}")
+    return jsonify({"task_id": task.id, "count":len(subtasks)})
 
 @app.route('/api/assignCategory', methods=['POST'])
 def assignCategory():

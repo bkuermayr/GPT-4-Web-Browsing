@@ -40,6 +40,10 @@ if ssl_options:
     )
 
 @celery.task
+def process_translation_task(inputFields, parent_data, children_data, automation):
+    print("edsad")
+
+@celery.task
 def process_extraction_variants_task(inputFields, outputFields, parent_id, variant_ids, useImage, automation_job_id, use_filled_output_attributes):
     categoryId = client.table('products_with_categories').select('category_ids').eq("id", parent_id).single().execute().data['category_ids']
     products = client.table('products').select('id,title,custom_fields').in_("id",variant_ids).execute().data
