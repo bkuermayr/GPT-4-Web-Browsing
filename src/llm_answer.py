@@ -107,6 +107,17 @@ class GPTAnswer:
         summary_prompt = prompt_template.format(language=language, context_str=web_sources, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
         return summary_prompt, GenerativeTextOutput
     
+    def get_template_generativeText_single(self, query, web_sources, language, profile, attributes = "", product_name = ""):
+        template = self.config["template_single"]
+        prompt_template = PromptTemplate(
+            input_variables=["profile", "context_str", "language", "query","context_attributes", "product_name"],
+            template=template
+        )
+
+        profile = "You are a helpful data extraction assistant." if not profile else profile
+        summary_prompt = prompt_template.format(language=language, context_str=web_sources, query=query, profile=profile,context_attributes=attributes,product_name=product_name)
+        return summary_prompt, GenerativeTextOutput
+    
     def get_template_attribute_parent(self, product_name, input_attributes, output_attributes):
         template = self.config["template_attribute_parent"]
         prompt_template = PromptTemplate(

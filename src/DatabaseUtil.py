@@ -109,5 +109,12 @@ def chunked(iterable, size):
     for i in range(0, len(iterable), size):
         yield iterable[i:i + size]
 
+def doesDocumentExist(product_id):
+    try:
+        document = client.table('documents').select('*').eq('product_id',product_id).execute().data
+        return len(document) > 0  # Returns True if document exists, False otherwise
+    except Exception as e:
+        return False
+
 if __name__ == '__main__':
     getAttributesWithCategoriesAndValues([1241,83])

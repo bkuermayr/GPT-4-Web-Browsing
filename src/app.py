@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from celery import group
-from tasks import celery, process_extraction_parent_task, process_extraction_variants_task, process_translation_task
+from tasks import celery, process_extraction_parent_task, process_extraction_variants_task, process_single_task, process_translation_task
 from dotenv import load_dotenv
 import os
 import ssl
@@ -190,6 +190,7 @@ def attributeExtractionVariants():
     print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
+@app.route('/api/createSingleDescription/', methods=['POST'])
 def singleGenerative():
     data = request.get_json()
     product_id = data.get('product_id')
@@ -207,11 +208,17 @@ def singleGenerative():
             aiAttributes.append(attribute)
         else:
             searchAttributes.append(attribute)
-    product = client.table('products').select('id,title,custom_fields').eq("id",product_id).execute().data
+    product = client.table('products').select('id,title,custom_fields').eq("id",product_id).single().execute().data
     autoData['searchAttributes'] = searchAttributes
     autoData['aiAttributes'] = aiAttributes 
     autoData['automation_job_id']=-1
     autoData['automation_id'] = automation_id
+    job = process_single_task.apply_async((product, autoData), queue='high')
+    results = job.get() 
+    failure = results.get('failure', True)
+    if failure:
+        return {"Error": results.get('reason', '')}
+    return results.get('answer').get('answer')
 
 
 @app.route('/api/createDescription',methods=['POST'])

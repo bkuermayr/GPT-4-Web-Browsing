@@ -63,6 +63,30 @@ class EmbeddingRetriever:
             print(f"An error occurred while creating or querying the PGVector database: {e}")
             return []
 
+    def retrieveExisting(self, id:str):
+        embedding = OpenAIEmbeddings(
+            model='text-embedding-ada-002',
+            openai_api_key=os.getenv("OPENAI_API_KEY")
+        )
+        try:
+            # This assumes the vector store already exists in Supabase
+            db = SupabaseVectorStore(
+                embedding=embedding,
+                client=supabaseClient,
+                table_name="documents",
+                product_id=id  # Optional if your store uses this to partition
+            )
+
+            retriever = db.as_retriever(
+                search_kwargs={"k": self.TOP_K, "filter": {"product_id": id}}
+            )
+
+            result = retriever.invoke(f'What are the main features and advantages of the product?')
+            return result
+        except Exception as e:
+            print(f"An error occurred while creating or querying the PGVector database: {e}")
+            return []
+
 # Example usage
 if __name__ == "__main__":
     query = "CHERVÒ Allista Damen-Poloshirt"

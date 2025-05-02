@@ -1,11 +1,12 @@
 import re
 import logging
+from anyio import sleep
 from celery import Celery, group
 from dotenv import load_dotenv
 import os
 import time
 import ssl
-from DatabaseUtil import findValueCustomFields, client, getURLLink
+from DatabaseUtil import doesDocumentExist, findValueCustomFields, client, getURLLink
 from celery.signals import task_postrun
 
 import json
@@ -395,7 +396,7 @@ def process_query_task(productData,automationData):
     if useFirstImage == True:
         assetUrl = getURLLink(product_id)
     try:
-        summary_template, scheme = content_processor.get_template_generativeText(prompt, relevant_docs_list, output_language, profile, aiVal, query)
+        summary_template, scheme = content_processor.get_template_generativeText(prompt, formatted_relevant_docs, output_language, profile, aiVal, query)
         ai_message_obj = content_processor.get_answer(summary_template, scheme, assetUrl, use_web_search)
         answer = ai_message_obj
         end = time.time()
@@ -548,6 +549,108 @@ def flatten_answer(data):
         else:
             return {"answer": data["answer"]}
     return {}
+
+
+@celery.task
+def process_single_task(productData,automationData):
+    query = productData.get('title',"")
+    prompt = automationData.get('prompt', '')
+    profile = automationData.get('profile', "")
+    search_location = automationData.get('search_location', "")
+    search_language = automationData.get('search_language', "")
+    output_language = automationData.get('output_language', "")
+    job_id = automationData.get('automation_job_id', "")
+    product_id = productData.get('id',"")
+    use_web_search = automationData.get('use_web_search', True)
+    aiAttr = automationData.get('aiAttributes',[])
+    customFields = productData.get('custom_fields',[])
+    useFirstImage = automationData.get('use_first_product_image',False)
+
+    aiVal = ''
+    for j in aiAttr:
+        temp = findValueCustomFields(customFields,j)
+        if j == 'title' or j == 'Title': continue
+        if(temp == ''): continue
+        aiVal =f'{aiVal} {j}: {temp} \n'
+    urls = automationData.get('search_domains','').split(",")
+    serperQuery = ""
+    searchRule = 0
+    for i in urls:
+        if i.strip() == '': continue
+        if serperQuery == '':
+            serperQuery = f'site:{i.strip()}'
+        else:
+            serperQuery = f"{serperQuery} OR site:{i.strip()}"
+        searchRule = 1
+    serperQuery = f'{serperQuery} {query}'
+    logging.info(f'Received searchQuery: {serperQuery}')
+    # Query für Serper: site:https://www.nike.com OR site:adidas.com Schuhe
+
+    logging.info(f'Received query: {query}, search_location: {search_location}, search_language: {search_language}, output_language: {output_language}')
+    logging.info(f'Received prompt: {prompt}')
+    logging.info(f'Received following attributes: {aiVal}')
+    content_processor = GPTAnswer()
+
+    if use_web_search and doesDocumentExist(product_id):
+        web_contents_fetcher = WebContentFetcher(query=serperQuery, search_location=search_location, search_language=search_language, output_language=output_language)
+        web_contents, serper_response = web_contents_fetcher.fetch(searchRule)
+        retriever = EmbeddingRetriever()
+        if serper_response is None:
+            response = {
+                'query': query,
+                'product_id': product_id,
+                'answer': {},
+                'output_language': output_language,
+                'failure' : True,
+                'reason': 'Not enough quality sources'
+            }
+            return response
+        relevant_docs_list = retriever.retrieve_embeddings(web_contents, serper_response['links'], query, product_id, job_id, rule=searchRule)
+        
+        formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, serper_response['links'])
+        if not formatted_relevant_docs:
+            response = {
+                'query': query,
+                'product_id': product_id,
+                'answer': {},
+                'output_language': output_language,
+                'failure' : True,
+                'reason': 'Not enough quality sources'
+            }
+            return response
+    elif use_web_search:
+        formatted_relevant_docs = None
+        serper_response = None
+    else:
+        retriever = EmbeddingRetriever()
+        relevant_docs_list = retriever.retrieveExisting()
+        formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, [])
+    assetUrl = None
+    if useFirstImage == True:
+        assetUrl = getURLLink(product_id)
+    try:
+        summary_template, scheme = content_processor.get_template_generativeText_single(prompt, formatted_relevant_docs, output_language, profile, aiVal, query)
+        ai_message_obj = content_processor.get_answer(summary_template, scheme, assetUrl, use_web_search)
+        answer = ai_message_obj
+        response = {
+            'query': query,
+            'product_id': product_id,
+            'answer': answer,
+            'output_language': output_language,
+            'failure' : False
+        }
+        return response
+    except Exception as e:
+         response = {
+                'query': query,
+                'product_id': product_id,
+                'answer': {},
+                'output_language': output_language,
+                'reference_cards': [],
+                'failure' : True,
+                'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
+            }
+         return response
 
 if __name__ == "__main__":
     output = [{'attributename': 'Schaft Material ()', 'attributeid': 2482, 'attributetype': 'text', 'allowedvalues': [], 'categories': [1]}]
