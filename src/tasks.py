@@ -51,7 +51,7 @@ def process_translation_task(inputFields, parent_data, children_data, automation
             'reason' : "No Output Language provided"
         }
     parentContext = getInputContext(inputFields, parent_data.get('custom_fields'))
-    inputContext = {f'{parent_data['id']}': parentContext}
+    inputContext = {f"{parent_data['id']}": parentContext}
     for x in children_data:
         customFields = x.get('custom_fields',[])
         product_id = x.get('id', "")
