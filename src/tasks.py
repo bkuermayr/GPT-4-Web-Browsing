@@ -59,7 +59,6 @@ def process_translation_task(inputFields, parent_data, children_data, automation
         inputContext[f'{product_id}'] = contextInput
     content_processor = GPTAnswer()
     template, scheme = content_processor.get_template_translation(inputContext,context, output_lang)
-    logging.info(template)
     try:
         ai_message_obj = content_processor.get_answer(template, scheme, None, False)
         answer = ai_message_obj

@@ -196,6 +196,11 @@ template_translations: |
      - Set it to an empty string `""`, or
      - Use an empty array `[]` (if the original input was an array).
   4. Do **not** include any product in the output if it has **no translatable attributes**.
+  5. **Do not shorten, summarize, or paraphrase longer text values (e.g., product descriptions).**
+   - Preserve the **original length, detail, and tone** as closely as possible.
+   - Aim for **fidelity over brevity**: translated text should reflect the full scope of the original, unless the input itself is unclear or repetitive.
+   - Do not remove nuance, technical detail, or narrative structure from the translation.
+
 
   ---
   **Output Format (JSON Object):**

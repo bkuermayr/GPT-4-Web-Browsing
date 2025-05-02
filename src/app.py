@@ -190,6 +190,30 @@ def attributeExtractionVariants():
     print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
+def singleGenerative():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    automation_id = data.get('auto_id')
+    automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",automation_id).execute().data
+    autoData = client.table('automation').select('*').eq("id",automation_id).single().execute().data
+    searchAttributes = []
+    aiAttributes = []
+    for x in automationFields:
+        attribute = x.get('special_field')
+        if not attribute: 
+            attribute = x.get('attribute_name')
+        if not attribute: continue
+        if x['is_search_term'] == False:
+            aiAttributes.append(attribute)
+        else:
+            searchAttributes.append(attribute)
+    product = client.table('products').select('id,title,custom_fields').eq("id",product_id).execute().data
+    autoData['searchAttributes'] = searchAttributes
+    autoData['aiAttributes'] = aiAttributes 
+    autoData['automation_job_id']=-1
+    autoData['automation_id'] = automation_id
+
+
 @app.route('/api/createDescription',methods=['POST'])
 def createDescription():
     data = request.get_json() 
@@ -229,7 +253,7 @@ def createDescription():
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
 
-@app.route('/api/createDescription/<task_id>', methods=['GET'])
+@app.route('/api/checkStatus/<task_id>', methods=['GET'])
 def taskGroupStatus(task_id):
     try:
         task = celery.GroupResult.restore(task_id)
