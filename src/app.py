@@ -194,7 +194,7 @@ def attributeExtractionVariants():
 def singleGenerative():
     data = request.get_json()
     product_id = data.get('product_id')
-    automation_id = data.get('auto_id')
+    automation_id = data.get('automation_id')
     automationFields = client.table('automation_field_attributes_view').select('special_field, is_search_term, attribute_name').eq("automation_id",automation_id).execute().data
     autoData = client.table('automation').select('*').eq("id",automation_id).single().execute().data
     searchAttributes = []
