@@ -4,7 +4,7 @@ from web_crawler import WebScraper
 from serper_service import SerperClient
 
 class WebContentFetcher:
-    def __init__(self, query, search_location="Vienna, Austria", search_language="en", output_language="en"):
+    def __init__(self, query, search_location="Vienna, Austria", search_language="en", output_language="en", setTimeout=False):
         # Initialize the fetcher with a search query
         self.query = query
         self.web_contents = []  # Stores the fetched web contents
@@ -13,6 +13,7 @@ class WebContentFetcher:
         self.error_urls_lock = threading.Lock()  # Lock for thread-safe operations on error_urls
         self.search_location = search_location
         self.search_language = search_language
+        self.setTimeout = setTimeout
         #self.test = 0
 
     def _web_crawler_thread(self, thread_id: int, urls: list):
@@ -23,7 +24,7 @@ class WebContentFetcher:
             print(f"Starting web crawler thread {thread_id} with {url}")
             start_time = time.time()
             scraper = WebScraper()
-            content = scraper.scrape_url(url, 0)
+            content = scraper.scrape_url(url, 0, setTimeout=self.setTimeout)
 
             if not content:
                 raise Exception(f"No content found for url: {url}")

@@ -35,7 +35,7 @@ class WebScraper:
                 'sec-ch-ua-platform': '"Windows"',
             }
 
-    def get_webpage_html(self, url):
+    def get_webpage_html(self, url, setTimeout):
         req = grequests.head(url,headers=self.headers, timeout = 10)
         #response = requests.head(url, headers=self.headers,timeout=(10,20))
         response = grequests.map([req])[0]
@@ -49,7 +49,12 @@ class WebScraper:
                 # Skip non-HTML content
                 raise Exception('Non HTML Content')
         try:
-            conf = ScrapeConfig(asp=True,render_js=False,
+            conf = None
+            if (setTimeout):
+                conf = ScrapeConfig(asp=True,render_js=False,
+                         url=url,timeout=30000, retry=False)
+            else:
+                conf = ScrapeConfig(asp=True,render_js=False,
                          url=url)
 
             response = self.scrapfly.scrape(scrape_config=conf)
@@ -80,9 +85,9 @@ class WebScraper:
             text_elements = [t for t in html_soup.find_all(string=True) if t.parent.name in allowlist and t.strip()]
         return "\n".join(text_elements).strip()
 
-    def scrape_url(self, url, rule=0):
+    def scrape_url(self, url, rule=0, setTimeout=False):
         # Public method to scrape a URL and extract its main content
-        webpage_html = self.get_webpage_html(url)
+        webpage_html = self.get_webpage_html(url, setTimeout)
         if not webpage_html:
             return None
         soup = self.convert_html_to_soup(webpage_html)

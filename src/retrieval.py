@@ -74,7 +74,6 @@ class EmbeddingRetriever:
                 embedding=embedding,
                 client=supabaseClient,
                 table_name="documents",
-                product_id=id  # Optional if your store uses this to partition
             )
 
             retriever = db.as_retriever(

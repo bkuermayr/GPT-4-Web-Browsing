@@ -591,8 +591,8 @@ def process_single_task(productData,automationData):
     logging.info(f'Received following attributes: {aiVal}')
     content_processor = GPTAnswer()
 
-    if use_web_search and doesDocumentExist(product_id):
-        web_contents_fetcher = WebContentFetcher(query=serperQuery, search_location=search_location, search_language=search_language, output_language=output_language)
+    if use_web_search and not doesDocumentExist(product_id):
+        web_contents_fetcher = WebContentFetcher(query=serperQuery, search_location=search_location, search_language=search_language, output_language=output_language, setTimeout=True)
         web_contents, serper_response = web_contents_fetcher.fetch(searchRule)
         retriever = EmbeddingRetriever()
         if serper_response is None:
@@ -618,12 +618,12 @@ def process_single_task(productData,automationData):
                 'reason': 'Not enough quality sources'
             }
             return response
-    elif use_web_search:
+    elif not use_web_search:
         formatted_relevant_docs = None
         serper_response = None
     else:
         retriever = EmbeddingRetriever()
-        relevant_docs_list = retriever.retrieveExisting()
+        relevant_docs_list = retriever.retrieveExisting(product_id)
         formatted_relevant_docs = content_processor._format_reference(relevant_docs_list, [])
     assetUrl = None
     if useFirstImage == True:
@@ -646,11 +646,46 @@ def process_single_task(productData,automationData):
                 'product_id': product_id,
                 'answer': {},
                 'output_language': output_language,
-                'reference_cards': [],
                 'failure' : True,
                 'reason': f'OpenAI did not provide Answer/parsable Answer because: {e}'
             }
          return response
+
+@task_postrun.connect(sender=process_single_task)
+def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
+    aID = -1
+    product_id = args[0].get('id',"")
+    print(f'Postrun reached by {product_id}')
+
+    if state=='SUCCESS':
+        success = not retval.get('failure',True)
+        if success == False:
+            data = {
+                'failureReason': retval['reason']
+            }
+            client.table('automation_job_data').insert({'product_id':product_id,'success':False,'data':data, 'error': data}).execute()
+        else:
+            data = {
+                'answer':"",
+                'references':"",
+            }
+            flags = retval['answer'].get("flags",{})
+            data['answer'] = retval['answer']
+            data['emptyWebResults'] = flags.get('emptyWebResults',True)
+            data['references'] = retval['answer'].get('references',[])
+            data['answer'].pop('references', None)
+            data['answer'].pop('flags', None)
+            realAnswer = data['answer'].get('answer',"")
+            data['answer'] = realAnswer
+            if success:
+                success = not data.get('emptyWebResults', True)
+                success = success and (not flags.get('different', False))
+            data['answer']=flatten_answer(data)
+            client.table('automation_job_data').insert({'product_id':product_id,'success':success,'data':data}).execute()
+    else:
+        client.table('automation_job_data').insert({'product_id':product_id,'success':False,'data':{'error':retval.__str__()},'error':retval.__str__()}).execute()
+
+
 
 if __name__ == "__main__":
     output = [{'attributename': 'Schaft Material ()', 'attributeid': 2482, 'attributetype': 'text', 'allowedvalues': [], 'categories': [1]}]

@@ -190,7 +190,7 @@ def attributeExtractionVariants():
     print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
-#@app.route('/api/createSingleDescription/', methods=['POST'])
+@app.route('/api/createSingleDescription/', methods=['POST'])
 def singleGenerative():
     data = request.get_json()
     product_id = data.get('product_id')
@@ -216,18 +216,6 @@ def singleGenerative():
     job = process_single_task.apply_async((product, autoData), queue='high')
     return jsonify({"task_id":job.id})
 
-@app.route('/api/createSingleDescription/<task_id>', methods=['GET'])
-def getSingleGenerative(task_id):
-    task = celery.AsyncResult(task_id)
-
-    if task.state == 'PENDING':
-        return jsonify({'status': 'pending'}), 202
-    elif task.state == 'SUCCESS':
-        return jsonify({'status': 'success', 'result': task.result.get('answer').get('answer')}), 200
-    elif task.state == 'FAILURE':
-        return jsonify({'status': 'failure', 'error': str(task.result)}), 500
-    else:
-        return jsonify({'status': task.state}), 202
 
 @app.route('/api/createDescription',methods=['POST'])
 def createDescription():
