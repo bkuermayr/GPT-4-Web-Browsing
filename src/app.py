@@ -190,7 +190,7 @@ def attributeExtractionVariants():
     print(f"Task ID: {task.id}")
     return jsonify({"task_id": task.id, "count":len(subtasks)})
 
-@app.route('/api/createSingleDescription/', methods=['POST'])
+#@app.route('/api/createSingleDescription/', methods=['POST'])
 def singleGenerative():
     data = request.get_json()
     product_id = data.get('product_id')
