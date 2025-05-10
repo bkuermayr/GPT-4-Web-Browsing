@@ -652,7 +652,7 @@ def process_single_task(productData,automationData):
          return response
 
 @task_postrun.connect(sender=process_single_task)
-def task_postrun_notifier(state=None, retval=None, task_id=None, args=None,**kwargs):
+def task_postrun_notifier_single(state=None, retval=None, task_id=None, args=None,**kwargs):
     aID = -1
     product_id = args[0].get('id',"")
     print(f'Postrun reached by {product_id}')
